@@ -4,7 +4,11 @@ function getRandom(arr) {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
-// Fallback generator used when no API key is provided or a request fails
+const emojiIcons = [
+  '⚡️', '🚀', '✨', '📈', '🧠', '☁️', '🔒', '🔧', '🎯',
+  '🤖', '💡', '📦', '📲', '📣', '🛠️', '🌈', '🦾', '📡',
+];
+
 function randomFeature() {
   const titles = [
     'Instant Onboarding',
@@ -36,14 +40,10 @@ function randomFeature() {
     'Plug in and go. It just works.',
   ];
 
-  const icons = [
-    '⚡️', '🚀', '✨', '📈', '🧠', '☁️', '🔒', '🔧', '🎯', '🤖', '💡', '📦', '📲', '📣', '🛠️',
-  ];
-
   return {
     title: getRandom(titles),
     description: getRandom(descriptions),
-    icon: getRandom(icons),
+    icon: getRandom(emojiIcons),
   };
 }
 
@@ -59,7 +59,7 @@ function randomTestimonial() {
   return { name: getRandom(names), quote: getRandom(quotes) };
 }
 
-function fallbackPitch(idea) {
+function generatePitch(idea) {
   const name = `${getRandom([
     'Hyper',
     'Quantum',
@@ -87,36 +87,6 @@ function fallbackPitch(idea) {
   const testimonials = [randomTestimonial(), randomTestimonial()];
   return { name, tagline, hero, features, testimonials };
 }
-
-async function generatePitch(idea) {
-  try {
-    const response = await fetch('/api/generate', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ idea }),
-    });
-
-    if (!response.ok) throw new Error('Bad response');
-
-    const result = await response.json();
-
-    // Inject emoji fallback icons into API results if they’re missing
-    if (Array.isArray(result.features)) {
-      result.features = result.features.map((f) => ({
-        ...f,
-        icon: f.icon || getRandom(['🚀', '⚡️', '💡', '📦', '🔧', '🎯']),
-      }));
-    }
-
-    return result;
-  } catch (err) {
-    console.error(err);
-    return fallbackPitch(idea);
-  }
-}
-
 
 const backgrounds = [
   'bg-gradient-to-r from-pink-500 via-red-500 to-yellow-500',
@@ -148,9 +118,9 @@ export default function App() {
     text: textStyles[0],
   });
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    const generated = await generatePitch(idea || 'your needs');
+    const generated = generatePitch(idea || 'your needs');
     setPitch(generated);
     setStyle({
       bg: getRandom(backgrounds),
@@ -178,53 +148,3 @@ export default function App() {
               Generate Pitch
             </button>
           </form>
-          {pitch && (
-            <div className="space-y-4 mt-8">
-              <h1 className="text-4xl md:text-6xl font-extrabold">{pitch.name}</h1>
-              <p className="text-xl md:text-2xl font-medium">{pitch.tagline}</p>
-              <p className="max-w-2xl mx-auto">{pitch.hero}</p>
-              <button className={`mt-4 px-6 py-3 rounded-lg shadow-lg hover:shadow-xl transition ${style.button}`}>
-                Get Started
-              </button>
-            </div>
-          )}
-        </header>
-
-        {pitch && (
-          <>
-            <section className="space-y-8">
-              <h2 className="text-3xl font-bold text-center">Features</h2>
-              <div className="grid gap-8 md:grid-cols-3">
-                {pitch.features?.map((f, i) => (
-                  <div
-                    key={i}
-                    className="bg-white text-gray-800 p-6 rounded-lg shadow"
-                  >
-                    <div className="text-3xl mb-2">{f.icon}</div>
-                    <h3 className="text-xl font-semibold mb-2">{f.title}</h3>
-                    <p>{f.description}</p>
-                  </div>
-                ))}
-              </div>
-            </section>
-
-            <section className="space-y-8">
-              <h2 className="text-3xl font-bold text-center">Testimonials</h2>
-              <div className="grid gap-8 md:grid-cols-2">
-                {pitch.testimonials?.map((t, i) => (
-                  <div
-                    key={i}
-                    className="bg-white text-gray-800 p-6 rounded-lg shadow"
-                  >
-                    <p className="italic mb-2">"{t.quote}"</p>
-                    <p className="font-semibold">- {t.name}</p>
-                  </div>
-                ))}
-              </div>
-            </section>
-          </>
-        )}
-      </div>
-    </div>
-  );
-}
