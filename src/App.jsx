@@ -85,7 +85,7 @@ function fallbackPitch(idea) {
     'Decentralized',
   ];
   const tagline = `${getRandom(words)} ${getRandom(words)} ${getRandom(words)}`;
-  const hero = At ${name}, we reinvent ${idea} with scalable disruption. Our platform unleashes frictionless synergy to drive unprecedented ROI.;
+  const hero = `At ${name}, we reinvent ${idea} with scalable disruption. Our platform unleashes frictionless synergy to drive unprecedented ROI.`;
   const features = [randomFeature(), randomFeature(), randomFeature()];
   const testimonials = [randomTestimonial(), randomTestimonial()];
   return { name, tagline, hero, features, testimonials };
