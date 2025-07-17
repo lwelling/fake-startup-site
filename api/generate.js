@@ -134,24 +134,24 @@ module.exports = async function handler(req, res) {
       throw new Error('No response');
     }
 
-    let name, tagline, hero, features, testimonials;
-
+    let generated;
     try {
       const parsed = JSON.parse(content);
       console.log("✅ Successfully parsed:", parsed);
-      name = parsed.name;
-      tagline = parsed.tagline;
-      hero = parsed.hero;
-      features = parsed.features;
-      testimonials = parsed.testimonials;
+      generated = parsed;
     } catch (err) {
       console.error("❌ Failed to parse content:", content);
       console.error(err);
     }
 
+    if (!generated || !generated.features || !generated.testimonials) {
+      console.log("ℹ️ Falling back to local generator due to missing data");
+      generated = fallbackPitch(idea);
+    }
+
     res.statusCode = 200;
     res.setHeader('Content-Type', 'application/json');
-    res.end(JSON.stringify({ name, tagline, hero, features, testimonials }));
+    res.end(JSON.stringify(generated));
   } catch (err) {
     console.error(err);
 
