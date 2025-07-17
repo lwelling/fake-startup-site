@@ -4,9 +4,8 @@ function getRandom(arr) {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
-const icons = [
-    '⚡️', '🚀', '✨', '📈', '🧠', '☁️', '🔒', '🔧', '🎯', '🤖', '💡', '📦', '📲', '📣', '🛠️',
-  ];
+const icons=["⚡️","🚀","✨","📈","🧠","☁️","🔒","🔧","🎯","🤖","💡","📦","📲","📣","🛠️"];
+const testimonialIcons=["🎉","🙌","👍","🤩","😊"];
 
 // Fallback generator used when no API key is provided or a request fails
 function randomFeature() {
@@ -56,7 +55,7 @@ function randomTestimonial() {
     'The best decision we ever made.',
     'A game changer in every way.',
   ];
-  return { name: getRandom(names), quote: getRandom(quotes) };
+  return { name: getRandom(names), quote: getRandom(quotes), icon: getRandom(testimonialIcons) };
 }
 
 function fallbackPitch(idea) {
@@ -206,7 +205,7 @@ export default function BrainRotaas() {
                 disabled={ctaLoading}
                 className={`mt-4 px-6 py-3 rounded-lg shadow-lg hover:shadow-xl transition ${style.button} disabled:opacity-50`}
               >
-                {ctaLoading ? 'Resetting...' : 'Get Started'}
+                {ctaLoading ? 'Shit, never mind…' : 'Get Started'}
               </button>
             </div>
           )}
@@ -220,8 +219,9 @@ export default function BrainRotaas() {
                 {pitch.features?.map((f, i) => (
                   <div
                     key={i}
-                    className="bg-white text-gray-800 p-6 rounded-lg shadow"
+                    className="bg-white text-gray-800 p-6 rounded-lg shadow flex flex-col items-start"
                   >
+                    <div className="text-3xl mb-2">{f.icon}</div>
                     <h3 className="text-xl font-semibold mb-2">{f.title}</h3>
                     <p>{f.description}</p>
                   </div>
@@ -237,6 +237,7 @@ export default function BrainRotaas() {
                     key={i}
                     className="bg-white text-gray-800 p-6 rounded-lg shadow"
                   >
+                    <div className="text-3xl mb-2">{t.icon || '💬'}</div>
                     <p className="italic mb-2">"{t.quote}"</p>
                     <p className="font-semibold">- {t.name}</p>
                   </div>
