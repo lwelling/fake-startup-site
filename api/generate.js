@@ -112,7 +112,7 @@ module.exports = async function handler(req, res) {
         messages: [
           {
             role: 'user',
-            content: `Create a ridiculous startup pitch for "${idea}". Return ONLY a JSON object with the keys name, tagline, hero, features, and testimonials. Features should be an array of three objects each with title, description, and icon fields. Testimonials should be an array of two objects each with name and quote fields. Do not include any commentary or explanations.`,
+            content: `Return ONLY a valid JSON object with the following fields: name (string), tagline (string), hero (string), features (array of 3 objects with title, description, and icon), testimonials (array of 2 objects with name and quote). Do not include any extra commentary, explanation, or formatting. Just the raw JSON.`
           },
         ],
         max_tokens: 200,
@@ -147,6 +147,8 @@ module.exports = async function handler(req, res) {
           console.log("✅ Successfully extracted and parsed JSON:", parsed);
         } catch (err) {
           console.error("❌ Failed to parse JSON slice:", jsonString, err);
+          console.error("❌ Failed to parse content. Raw content:\n", content);
+          console.error(err);
         }
       }
       
