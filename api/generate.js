@@ -28,6 +28,8 @@ function randomFeature() {
   };
 }
 
+const testimonialIcons = ['🎉', '🙌', '👍', '🤩', '😊'];
+
 function randomTestimonial() {
   const names = ['Alice B.', 'Bob C.', 'Charlie D.', 'Dana E.', 'Eli F.'];
   const quotes = [
@@ -37,7 +39,7 @@ function randomTestimonial() {
     'The best decision we ever made.',
     'A game changer in every way.',
   ];
-  return { name: getRandom(names), quote: getRandom(quotes) };
+  return { name: getRandom(names), quote: getRandom(quotes), icon: getRandom(testimonialIcons) };
 }
 
 function fallbackPitch(idea) {
@@ -112,7 +114,7 @@ module.exports = async function handler(req, res) {
         messages: [
           {
             role: 'user',
-            content: `Create a startup pitch for the idea "${idea}". Make the description darkly dystopian and ironically sinister. For example, a cat rescue service might boast about locking cats in a cage. Return ONLY a valid JSON object with the following fields: name (string), tagline (string), hero (string), features (array of 3 objects with title, description, and icon), testimonials (array of 2 objects with name and quote). Do not include any extra commentary, explanation, or formatting. Just the raw JSON.`,
+            content: `Create a startup pitch for the idea "${idea}". Make the description darkly dystopian and ironically sinister. For example, a cat rescue service might boast about locking cats in a cage. Return ONLY a valid JSON object with the following fields: name (string), tagline (string), hero (string), features (array of 3 objects with title, description, and icon), testimonials (array of 2 objects with name, quote, and icon). Do not include any extra commentary, explanation, or formatting. Just the raw JSON.`,
           },
         ],
         max_tokens: 400,
