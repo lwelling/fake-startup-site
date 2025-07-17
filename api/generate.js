@@ -112,7 +112,7 @@ module.exports = async function handler(req, res) {
         messages: [
           {
             role: 'user',
-            content: `Return ONLY a valid JSON object with the following fields: name (string), tagline (string), hero (string), features (array of 3 objects with title, description, and icon), testimonials (array of 2 objects with name and quote). Do not include any extra commentary, explanation, or formatting. Just the raw JSON.`
+            content: `Create a startup pitch for the idea "${idea}". Return ONLY a valid JSON object with the following fields: name (string), tagline (string), hero (string), features (array of 3 objects with title, description, and icon), testimonials (array of 2 objects with name and quote). Do not include any extra commentary, explanation, or formatting. Just the raw JSON.`,
           },
         ],
         max_tokens: 400,
