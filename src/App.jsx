@@ -152,7 +152,7 @@ export default function App() {
   };
 
   return (
-    <div className={min-h-screen ${style.bg} ${style.text}}>
+    <div className={`min-h-screen ${style.bg} ${style.text}`}>
       <div className="max-w-6xl mx-auto p-8 space-y-16">
         <header className="text-center space-y-8">
           <form onSubmit={handleSubmit} className="space-y-4 max-w-xl mx-auto">
