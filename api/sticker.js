@@ -1,10 +1,30 @@
 const getRandom = (arr) => arr[Math.floor(Math.random() * arr.length)];
 
 const fallbackStickers = [
-  'Witness the "Awkward Bento Date"—a blushing anime boy spilling soy sauce everywhere while praising you for rocking this sticker.',
-  'The "Otaku Dance Off" shows a sweat-drenched character busting clumsy moves and cheering you on for repping anime on the road.',
-  'Sport the "Magical Girl Mishap"—a heroine mid-transformation tripping over her own wand yet applauding your bold taste in car decor.',
-  'Behold the "Mecha Fangirl Frenzy"—an overexcited pilot hugging a giant robot leg, thrilled you slapped this on your bumper.',
+  {
+    description:
+      'Witness the "Awkward Bento Date"—a blushing anime boy spilling soy sauce everywhere while striking a "cool" pose.',
+    pitch:
+      "It's so painfully adorable that slapping it on your ride proves you're the hero of cringe culture!",
+  },
+  {
+    description:
+      'The "Otaku Dance Off" shows a sweat-drenched character busting clumsy moves with neon speed lines behind them.',
+    pitch:
+      'Everyone will respect your fearless style when they see this masterpiece on your laptop.',
+  },
+  {
+    description:
+      'Sport the "Magical Girl Mishap"—a heroine mid-transformation tripping over her own wand amid glitter explosions.',
+    pitch:
+      'Own it and friends will know you appreciate so-bad-it\'s-good anime drama.',
+  },
+  {
+    description:
+      'Behold the "Mecha Fangirl Frenzy"—an overexcited pilot hugging a giant robot leg in tearful joy.',
+    pitch:
+      'Stick it on your bumper and watch passersby salute your unapologetic enthusiasm.',
+  },
 ];
 
 module.exports = async function handler(req, res) {
@@ -16,9 +36,10 @@ module.exports = async function handler(req, res) {
   }
 
   if (!process.env.OPENAI_API_KEY) {
+    const pair = getRandom(fallbackStickers);
     res.statusCode = 200;
     res.setHeader('Content-Type', 'application/json');
-    res.end(JSON.stringify({ description: getRandom(fallbackStickers) }));
+    res.end(JSON.stringify(pair));
     return;
   }
 
@@ -35,10 +56,10 @@ module.exports = async function handler(req, res) {
           {
             role: 'user',
             content:
-              'Describe in one enthusiastic sentence an anime car sticker depicting a cringe or awkward scene. Compliment the driver for boldly displaying it.',
+              'Provide a cringe-worthy anime car sticker idea. Respond ONLY with a JSON object containing "description" for the sticker scene and "pitch" to humorously convince the buyer.',
           },
         ],
-        max_tokens: 60,
+        max_tokens: 100,
         temperature: 1,
       }),
     });
@@ -46,14 +67,22 @@ module.exports = async function handler(req, res) {
     if (!response.ok) throw new Error('Bad response');
     const data = await response.json();
     const content = data.choices?.[0]?.message?.content?.trim();
-    const description = content || getRandom(fallbackStickers);
+    let parsed;
+    try {
+      parsed = JSON.parse(content);
+    } catch (e) {
+      // ignore parse error
+    }
+    if (!parsed || !parsed.description || !parsed.pitch) {
+      parsed = getRandom(fallbackStickers);
+    }
     res.statusCode = 200;
     res.setHeader('Content-Type', 'application/json');
-    res.end(JSON.stringify({ description }));
+    res.end(JSON.stringify(parsed));
   } catch (err) {
     console.error(err);
     res.statusCode = 200;
     res.setHeader('Content-Type', 'application/json');
-    res.end(JSON.stringify({ description: getRandom(fallbackStickers) }));
+    res.end(JSON.stringify(getRandom(fallbackStickers)));
   }
 };
