@@ -3,6 +3,43 @@ function getRandom(arr) {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
+function randomFeature() {
+  const titles = [
+    'Instant Onboarding',
+    'AI Insights',
+    'Cloud Ready',
+    'One-Click Sync',
+    'Seamless Collaboration',
+    'Rocket-Fast Deployments',
+  ];
+  const descriptions = [
+    'Get started in seconds with no learning curve.',
+    'Harness the power of machine learning to grow faster.',
+    'Built from the ground up for modern distributed teams.',
+    'Connect all your tools with a single tap.',
+    'Work together in real time anywhere in the world.',
+    'Ship updates at blazing speed with zero downtime.',
+  ];
+  const icons = ['🚀', '✨', '⚡', '🔥', '💡', '📈'];
+  return {
+    title: getRandom(titles),
+    description: getRandom(descriptions),
+    icon: getRandom(icons),
+  };
+}
+
+function randomTestimonial() {
+  const names = ['Alice B.', 'Bob C.', 'Charlie D.', 'Dana E.', 'Eli F.'];
+  const quotes = [
+    'This completely changed our business!',
+    'I cannot imagine life without it.',
+    'Absolutely mind blowing results.',
+    'The best decision we ever made.',
+    'A game changer in every way.',
+  ];
+  return { name: getRandom(names), quote: getRandom(quotes) };
+}
+
 function fallbackPitch(idea) {
   const name = `${getRandom([
     'Hyper',
@@ -27,7 +64,9 @@ function fallbackPitch(idea) {
   ];
   const tagline = `${getRandom(words)} ${getRandom(words)} ${getRandom(words)}`;
   const hero = `At ${name}, we reinvent ${idea} with scalable disruption. Our platform unleashes frictionless synergy to drive unprecedented ROI.`;
-  return { name, tagline, hero };
+  const features = [randomFeature(), randomFeature(), randomFeature()];
+  const testimonials = [randomTestimonial(), randomTestimonial()];
+  return { name, tagline, hero, features, testimonials };
 }
 
 
@@ -73,10 +112,10 @@ module.exports = async function handler(req, res) {
         messages: [
           {
             role: 'user',
-            content: `Create a ridiculous startup pitch for "${idea}". Return ONLY a JSON object with the fields "name", "tagline", and "hero" — do not include any commentary or explanation.`,
+            content: `Create a ridiculous startup pitch for "${idea}". Return ONLY a JSON object with the keys name, tagline, hero, features, and testimonials. Features should be an array of three objects each with title, description, and icon fields. Testimonials should be an array of two objects each with name and quote fields. Do not include any commentary or explanations.`,
           },
         ],
-        max_tokens: 80,
+        max_tokens: 200,
         temperature: 1,
       }),
     });
@@ -95,7 +134,7 @@ module.exports = async function handler(req, res) {
       throw new Error('No response');
     }
 
-    let name, tagline, hero;
+    let name, tagline, hero, features, testimonials;
 
     try {
       const parsed = JSON.parse(content);
@@ -103,6 +142,8 @@ module.exports = async function handler(req, res) {
       name = parsed.name;
       tagline = parsed.tagline;
       hero = parsed.hero;
+      features = parsed.features;
+      testimonials = parsed.testimonials;
     } catch (err) {
       console.error("❌ Failed to parse content:", content);
       console.error(err);
@@ -110,7 +151,7 @@ module.exports = async function handler(req, res) {
 
     res.statusCode = 200;
     res.setHeader('Content-Type', 'application/json');
-    res.end(JSON.stringify({ name, tagline, hero }));
+    res.end(JSON.stringify({ name, tagline, hero, features, testimonials }));
   } catch (err) {
     console.error(err);
 

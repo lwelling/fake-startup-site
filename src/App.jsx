@@ -5,6 +5,43 @@ function getRandom(arr) {
 }
 
 // Fallback generator used when no API key is provided or a request fails
+function randomFeature() {
+  const titles = [
+    'Instant Onboarding',
+    'AI Insights',
+    'Cloud Ready',
+    'One-Click Sync',
+    'Seamless Collaboration',
+    'Rocket-Fast Deployments',
+  ];
+  const descriptions = [
+    'Get started in seconds with no learning curve.',
+    'Harness the power of machine learning to grow faster.',
+    'Built from the ground up for modern distributed teams.',
+    'Connect all your tools with a single tap.',
+    'Work together in real time anywhere in the world.',
+    'Ship updates at blazing speed with zero downtime.',
+  ];
+  const icons = ['🚀', '✨', '⚡', '🔥', '💡', '📈'];
+  return {
+    title: getRandom(titles),
+    description: getRandom(descriptions),
+    icon: getRandom(icons),
+  };
+}
+
+function randomTestimonial() {
+  const names = ['Alice B.', 'Bob C.', 'Charlie D.', 'Dana E.', 'Eli F.'];
+  const quotes = [
+    'This completely changed our business!',
+    'I cannot imagine life without it.',
+    'Absolutely mind blowing results.',
+    'The best decision we ever made.',
+    'A game changer in every way.',
+  ];
+  return { name: getRandom(names), quote: getRandom(quotes) };
+}
+
 function fallbackPitch(idea) {
   const name = `${getRandom([
     'Hyper',
@@ -29,7 +66,9 @@ function fallbackPitch(idea) {
   ];
   const tagline = `${getRandom(words)} ${getRandom(words)} ${getRandom(words)}`;
   const hero = `At ${name}, we reinvent ${idea} with scalable disruption. Our platform unleashes frictionless synergy to drive unprecedented ROI.`;
-  return { name, tagline, hero };
+  const features = [randomFeature(), randomFeature(), randomFeature()];
+  const testimonials = [randomTestimonial(), randomTestimonial()];
+  return { name, tagline, hero, features, testimonials };
 }
 
 async function generatePitch(idea) {
@@ -93,32 +132,69 @@ export default function App() {
   };
 
   return (
-    <div className={`min-h-screen flex items-center justify-center p-4 ${style.bg}`}>
-      <div className={`w-full max-w-2xl space-y-6 text-center ${style.text}`}>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <input
-            type="text"
-            value={idea}
-            onChange={(e) => setIdea(e.target.value)}
-            placeholder="Describe your startup idea..."
-            className="w-full p-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 placeholder-gray-500 bg-white"
-          />
-          <button
-            type="submit"
-            className="w-full bg-blue-600 text-white py-3 rounded-md font-semibold hover:bg-blue-700 transition"
-          >
-            Generate Pitch
-          </button>
-        </form>
-        {pitch && (
-          <div className="space-y-4 mt-8">
-            <h1 className="text-4xl font-extrabold">{pitch.name}</h1>
-            <p className="text-xl font-medium">{pitch.tagline}</p>
-            <p>{pitch.hero}</p>
-            <button className={`mt-4 px-6 py-3 rounded-lg shadow-lg hover:shadow-xl transition ${style.button}`}> 
-              Get Started
+    <div className={`min-h-screen ${style.bg} ${style.text}`}>
+      <div className="max-w-6xl mx-auto p-8 space-y-16">
+        <header className="text-center space-y-8">
+          <form onSubmit={handleSubmit} className="space-y-4 max-w-xl mx-auto">
+            <input
+              type="text"
+              value={idea}
+              onChange={(e) => setIdea(e.target.value)}
+              placeholder="Describe your startup idea..."
+              className="w-full p-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 placeholder-gray-500 bg-white"
+            />
+            <button
+              type="submit"
+              className="w-full bg-blue-600 text-white py-3 rounded-md font-semibold hover:bg-blue-700 transition"
+            >
+              Generate Pitch
             </button>
-          </div>
+          </form>
+          {pitch && (
+            <div className="space-y-4 mt-8">
+              <h1 className="text-4xl md:text-6xl font-extrabold">{pitch.name}</h1>
+              <p className="text-xl md:text-2xl font-medium">{pitch.tagline}</p>
+              <p className="max-w-2xl mx-auto">{pitch.hero}</p>
+              <button className={`mt-4 px-6 py-3 rounded-lg shadow-lg hover:shadow-xl transition ${style.button}`}>
+                Get Started
+              </button>
+            </div>
+          )}
+        </header>
+
+        {pitch && (
+          <>
+            <section className="space-y-8">
+              <h2 className="text-3xl font-bold text-center">Features</h2>
+              <div className="grid gap-8 md:grid-cols-3">
+                {pitch.features?.map((f, i) => (
+                  <div
+                    key={i}
+                    className="bg-white text-gray-800 p-6 rounded-lg shadow"
+                  >
+                    <div className="text-3xl mb-2">{f.icon}</div>
+                    <h3 className="text-xl font-semibold mb-2">{f.title}</h3>
+                    <p>{f.description}</p>
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            <section className="space-y-8">
+              <h2 className="text-3xl font-bold text-center">Testimonials</h2>
+              <div className="grid gap-8 md:grid-cols-2">
+                {pitch.testimonials?.map((t, i) => (
+                  <div
+                    key={i}
+                    className="bg-white text-gray-800 p-6 rounded-lg shadow"
+                  >
+                    <p className="italic mb-2">"{t.quote}"</p>
+                    <p className="font-semibold">- {t.name}</p>
+                  </div>
+                ))}
+              </div>
+            </section>
+          </>
         )}
       </div>
     </div>
