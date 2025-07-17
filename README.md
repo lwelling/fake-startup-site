@@ -5,6 +5,8 @@ Visit the root of the site for a splash page at `lkw.lol` complete with a snarky
 contact form. The original startup pitch generator now lives at `/brainrotaas`.
 There you can type a startup idea and instantly generate a pretend pitch. Enter
 something like `Uber for squirrels` and you'll get:
+There's also `/shi-spot` where you pick emoji nouns, verbs, and locations to
+generate a silly picture.
 
 - A startup name
 - A three-word tagline

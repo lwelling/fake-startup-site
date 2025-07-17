@@ -13,6 +13,9 @@ export default function Navbar() {
         <li>
           <Link to="/animestickers" className="hover:underline">Anime Stickers</Link>
         </li>
+        <li>
+          <Link to="/shi-spot" className="hover:underline">Shi Spot</Link>
+        </li>
       </ul>
     </nav>
   );
