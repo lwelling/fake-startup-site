@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 export default function AnimeStickers() {
   const [description, setDescription] = useState('');
   const [pitch, setPitch] = useState('');
+  const [image, setImage] = useState('');
   const [loading, setLoading] = useState(false);
 
   const fetchSticker = async () => {
@@ -12,6 +13,7 @@ export default function AnimeStickers() {
       const data = await res.json();
       setDescription(data.description || '');
       setPitch(data.pitch || '');
+      setImage(data.image || '');
     } catch (err) {
       console.error(err);
     } finally {
@@ -27,6 +29,9 @@ export default function AnimeStickers() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-500 via-fuchsia-600 to-purple-700 text-white p-4">
       <div className="space-y-6 text-center max-w-xl">
         <h1 className="text-4xl font-extrabold">Anime Sticker of the Day</h1>
+        {image && (
+          <img src={image} alt="Anime sticker" className="mx-auto rounded-lg w-full max-w-sm" />
+        )}
         <p className="text-lg">{description}</p>
         {pitch && <p className="text-lg italic">{pitch}</p>}
         <div className="space-x-4">

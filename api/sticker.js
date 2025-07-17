@@ -17,7 +17,7 @@ const fallbackStickers = [
     description:
       'Sport the "Magical Girl Mishap"—a heroine mid-transformation tripping over her own wand amid glitter explosions.',
     pitch:
-      'Own it and friends will know you appreciate so-bad-it\'s-good anime drama.',
+      "Own it and friends will know you appreciate so-bad-it's-good anime drama.",
   },
   {
     description:
@@ -26,6 +26,8 @@ const fallbackStickers = [
       'Stick it on your bumper and watch passersby salute your unapologetic enthusiasm.',
   },
 ];
+
+const fallbackImage = 'https://placehold.co/512x512?text=Sticker';
 
 module.exports = async function handler(req, res) {
   if (req.method !== 'GET') {
@@ -39,7 +41,9 @@ module.exports = async function handler(req, res) {
     const pair = getRandom(fallbackStickers);
     res.statusCode = 200;
     res.setHeader('Content-Type', 'application/json');
-    res.end(JSON.stringify(pair));
+    res.end(
+      JSON.stringify({ ...pair, image: fallbackImage })
+    );
     return;
   }
 
@@ -74,7 +78,32 @@ module.exports = async function handler(req, res) {
       // ignore parse error
     }
     if (!parsed || !parsed.description || !parsed.pitch) {
-      parsed = getRandom(fallbackStickers);
+      parsed = { ...getRandom(fallbackStickers), image: fallbackImage };
+    } else {
+      try {
+        const imgRes = await fetch('https://api.openai.com/v1/images/generations', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+          },
+          body: JSON.stringify({
+            model: 'dall-e-3',
+            prompt: parsed.description,
+            n: 1,
+            size: '1024x1024',
+          }),
+        });
+        if (imgRes.ok) {
+          const imgData = await imgRes.json();
+          parsed.image = imgData.data?.[0]?.url || fallbackImage;
+        } else {
+          parsed.image = fallbackImage;
+        }
+      } catch (e) {
+        console.error(e);
+        parsed.image = fallbackImage;
+      }
     }
     res.statusCode = 200;
     res.setHeader('Content-Type', 'application/json');
@@ -83,6 +112,8 @@ module.exports = async function handler(req, res) {
     console.error(err);
     res.statusCode = 200;
     res.setHeader('Content-Type', 'application/json');
-    res.end(JSON.stringify(getRandom(fallbackStickers)));
+    res.end(
+      JSON.stringify({ ...getRandom(fallbackStickers), image: fallbackImage })
+    );
   }
 };
