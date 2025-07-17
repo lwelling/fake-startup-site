@@ -134,6 +134,9 @@ const textStyles = [
 export default function BrainRotaas() {
   const [idea, setIdea] = useState('');
   const [pitch, setPitch] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [ctaLoading, setCtaLoading] = useState(false);
+  const [toast, setToast] = useState('');
   const [style, setStyle] = useState({
     bg: backgrounds[0],
     button: buttonStyles[0],
@@ -142,6 +145,8 @@ export default function BrainRotaas() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (loading) return;
+    setLoading(true);
     const generated = await generatePitch(idea || 'your needs');
     setPitch(generated);
     setStyle({
@@ -149,6 +154,22 @@ export default function BrainRotaas() {
       button: getRandom(buttonStyles),
       text: getRandom(textStyles),
     });
+    setToast('Pitch generated!');
+    setLoading(false);
+    setTimeout(() => setToast(''), 4000);
+  };
+
+  const handleReset = () => {
+    if (ctaLoading) return;
+    setCtaLoading(true);
+    setTimeout(() => {
+      setIdea('');
+      setPitch(null);
+      setStyle({ bg: backgrounds[0], button: buttonStyles[0], text: textStyles[0] });
+      setToast('Reset!');
+      setCtaLoading(false);
+      setTimeout(() => setToast(''), 4000);
+    }, 300);
   };
 
   return (
@@ -165,17 +186,23 @@ export default function BrainRotaas() {
             />
             <button
               type="submit"
-              className="w-full bg-blue-600 text-white py-3 rounded-md font-semibold hover:bg-blue-700 transition"
+              disabled={loading}
+              className="w-full bg-blue-600 text-white py-3 rounded-md font-semibold hover:bg-blue-700 transition disabled:opacity-50"
             >
-              Generate Pitch
+              {loading ? 'Generating...' : 'Generate Pitch'}
             </button>
           </form>
+          <p className="max-w-xl mx-auto text-lg">Enter anything from your wildest idea to a half-baked concept and we'll whip up a convincing pitch. Hit the button above and see what happens!</p>
           {pitch && (
             <div className="space-y-4 mt-8">
               <h1 className="text-4xl md:text-6xl font-extrabold">{pitch.name}</h1>
               <p className="text-xl md:text-2xl font-medium">{pitch.tagline}</p>
-              <button className={`mt-4 px-6 py-3 rounded-lg shadow-lg hover:shadow-xl transition ${style.button}`}>
-                Get Started
+              <button
+                onClick={handleReset}
+                disabled={ctaLoading}
+                className={`mt-4 px-6 py-3 rounded-lg shadow-lg hover:shadow-xl transition ${style.button} disabled:opacity-50`}
+              >
+                {ctaLoading ? 'Resetting...' : 'Get Started'}
               </button>
             </div>
           )}
@@ -213,6 +240,11 @@ export default function BrainRotaas() {
               </div>
             </section>
           </>
+        )}
+        {toast && (
+          <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-4 py-2 rounded shadow-lg">
+            {toast}
+          </div>
         )}
       </div>
     </div>
