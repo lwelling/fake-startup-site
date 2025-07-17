@@ -174,7 +174,6 @@ export default function App() {
             <div className="space-y-4 mt-8">
               <h1 className="text-4xl md:text-6xl font-extrabold">{pitch.name}</h1>
               <p className="text-xl md:text-2xl font-medium">{pitch.tagline}</p>
-              <p className="max-w-2xl mx-auto">{pitch.hero}</p>
               <button className={`mt-4 px-6 py-3 rounded-lg shadow-lg hover:shadow-xl transition ${style.button}`}>
                 Get Started
               </button>
@@ -192,7 +191,6 @@ export default function App() {
                     key={i}
                     className="bg-white text-gray-800 p-6 rounded-lg shadow"
                   >
-                    <div className="text-3xl mb-2">{f.icon}</div>
                     <h3 className="text-xl font-semibold mb-2">{f.title}</h3>
                     <p>{f.description}</p>
                   </div>
