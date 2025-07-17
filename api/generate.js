@@ -73,7 +73,7 @@ module.exports = async function handler(req, res) {
         messages: [
           {
             role: 'user',
-            content: `Create a ridiculous startup pitch for "${idea}" and reply with JSON having the fields name, tagline and hero.`,
+            content: `Create a ridiculous startup pitch for "${idea}". Return ONLY a JSON object with the fields "name", "tagline", and "hero" — do not include any commentary or explanation.`,
           },
         ],
         max_tokens: 80,
