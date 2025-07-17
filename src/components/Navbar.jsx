@@ -10,6 +10,9 @@ export default function Navbar() {
         <li>
           <Link to="/brainrotaas" className="hover:underline">BrainROTAaS</Link>
         </li>
+        <li>
+          <Link to="/animestickers" className="hover:underline">Anime Stickers</Link>
+        </li>
       </ul>
     </nav>
   );
