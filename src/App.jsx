@@ -13,7 +13,14 @@ function randomFeature() {
     'One-Click Sync',
     'Seamless Collaboration',
     'Rocket-Fast Deployments',
+    'Smart Notifications',
+    'No-Code Tools',
+    'Secure by Default',
+    'Built for Scale',
+    'Realtime Collaboration',
+    'Effortless Setup',
   ];
+
   const descriptions = [
     'Get started in seconds with no learning curve.',
     'Harness the power of machine learning to grow faster.',
@@ -21,8 +28,18 @@ function randomFeature() {
     'Connect all your tools with a single tap.',
     'Work together in real time anywhere in the world.',
     'Ship updates at blazing speed with zero downtime.',
+    'Stay ahead with intelligent alerts and monitoring.',
+    'Build workflows without writing a line of code.',
+    'Military-grade encryption and authentication.',
+    'Your growth won’t outgrow us — ever.',
+    'Share, edit, and thrive — all live.',
+    'Plug in and go. It just works.',
   ];
-  const icons = ['🚀', '✨', '⚡', '🔥', '💡', '📈'];
+
+  const icons = [
+    '⚡️', '🚀', '✨', '📈', '🧠', '☁️', '🔒', '🔧', '🎯', '🤖', '💡', '📦', '📲', '📣', '🛠️',
+  ];
+
   return {
     title: getRandom(titles),
     description: getRandom(descriptions),
