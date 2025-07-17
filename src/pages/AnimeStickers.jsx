@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 
 export default function AnimeStickers() {
   const [description, setDescription] = useState('');
   const [pitch, setPitch] = useState('');
   const [image, setImage] = useState('');
   const [loading, setLoading] = useState(false);
+  const [stickerReady, setStickerReady] = useState(false);
 
   const fetchSticker = async () => {
     setLoading(true);
@@ -14,6 +15,7 @@ export default function AnimeStickers() {
       setDescription(data.description || '');
       setPitch(data.pitch || '');
       setImage(data.image || '');
+      setStickerReady(true);
     } catch (err) {
       console.error(err);
     } finally {
@@ -21,9 +23,12 @@ export default function AnimeStickers() {
     }
   };
 
-  useEffect(() => {
-    fetchSticker();
-  }, []);
+  const handleBuy = () => {
+    setDescription('');
+    setPitch('');
+    setImage('');
+    setStickerReady(false);
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-500 via-fuchsia-600 to-purple-700 text-white p-4">
@@ -35,13 +40,22 @@ export default function AnimeStickers() {
         <p className="text-lg">{description}</p>
         {pitch && <p className="text-lg italic">{pitch}</p>}
         <div className="space-x-4">
-          <button
-            onClick={fetchSticker}
-            disabled={loading}
-            className="px-5 py-3 bg-white text-purple-700 font-semibold rounded shadow hover:bg-purple-50 disabled:opacity-50"
-          >
-            {loading ? 'Buying...' : 'Buy It Now'}
-          </button>
+          {!stickerReady ? (
+            <button
+              onClick={fetchSticker}
+              disabled={loading}
+              className="px-5 py-3 bg-white text-purple-700 font-semibold rounded shadow hover:bg-purple-50 disabled:opacity-50"
+            >
+              {loading ? 'Finding...' : 'Find My Next Sticker'}
+            </button>
+          ) : (
+            <button
+              onClick={handleBuy}
+              className="px-5 py-3 bg-white text-purple-700 font-semibold rounded shadow hover:bg-purple-50"
+            >
+              Buy It Now
+            </button>
+          )}
         </div>
       </div>
     </div>
