@@ -1,6 +1,45 @@
 const OpenAI = require('openai');
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+// Basic random generator used when no key is provided or the API fails
+function getRandom(arr) {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+
+function fallbackPitch(idea) {
+  const name = `${getRandom([
+    'Hyper',
+    'Quantum',
+    'NextGen',
+    'Sky',
+    'Deep',
+    'Spark',
+    'Venture',
+  ])} ${getRandom(['Labs', 'Works', 'Dynamics', 'Systems', 'Industries'])}`;
+
+  const words = [
+    'Seamless',
+    'Scalable',
+    'Disruptive',
+    'AI-powered',
+    'Synergistic',
+    'Cloud',
+    'Next-level',
+    'Frictionless',
+    'Decentralized',
+  ];
+  const tagline = `${getRandom(words)} ${getRandom(words)} ${getRandom(words)}`;
+  const hero = `At ${name}, we reinvent ${idea} with scalable disruption. Our platform unleashes frictionless synergy to drive unprecedented ROI.`;
+  return { name, tagline, hero };
+}
+
+let openai;
+if (process.env.OPENAI_API_KEY) {
+  try {
+    openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  } catch (err) {
+    console.error('Failed to initialize OpenAI client:', err);
+  }
+}
 
 module.exports = async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -16,6 +55,15 @@ module.exports = async function handler(req, res) {
       res.statusCode = 400;
       res.setHeader('Content-Type', 'application/json');
       res.end(JSON.stringify({ error: 'Missing idea' }));
+      return;
+    }
+
+    // If no OpenAI key is present, fall back to a random generator
+    if (!openai) {
+      const generated = fallbackPitch(idea);
+      res.statusCode = 200;
+      res.setHeader('Content-Type', 'application/json');
+      res.end(JSON.stringify(generated));
       return;
     }
 
@@ -41,6 +89,20 @@ module.exports = async function handler(req, res) {
     res.end(message);
   } catch (err) {
     console.error(err);
+
+    // If we have a failure from OpenAI, try the fallback generator
+    if (req.body && req.body.idea) {
+      try {
+        const generated = fallbackPitch(req.body.idea);
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json');
+        res.end(JSON.stringify(generated));
+        return;
+      } catch (e) {
+        console.error('Fallback generator failed:', e);
+      }
+    }
+
     res.statusCode = 500;
     res.setHeader('Content-Type', 'application/json');
     res.end(JSON.stringify({ error: 'Failed to generate pitch' }));
