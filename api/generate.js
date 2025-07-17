@@ -136,7 +136,20 @@ module.exports = async function handler(req, res) {
 
     let generated;
     try {
-      const parsed = JSON.parse(content);
+      const jsonStart = content.indexOf('{');
+      const jsonEnd = content.lastIndexOf('}');
+      let parsed;
+      
+      if (jsonStart !== -1 && jsonEnd !== -1) {
+        const jsonString = content.slice(jsonStart, jsonEnd + 1);
+        try {
+          parsed = JSON.parse(jsonString);
+          console.log("✅ Successfully extracted and parsed JSON:", parsed);
+        } catch (err) {
+          console.error("❌ Failed to parse JSON slice:", jsonString, err);
+        }
+      }
+      
       console.log("✅ Successfully parsed:", parsed);
       generated = parsed;
     } catch (err) {
@@ -144,9 +157,9 @@ module.exports = async function handler(req, res) {
       console.error(err);
     }
 
-    if (!generated || !generated.features || !generated.testimonials) {
+    if (!parsed || !parsed.features || !parsed.testimonials) {
       console.log("ℹ️ Falling back to local generator due to missing data");
-      generated = fallbackPitch(idea);
+      parsed = fallbackPitch(idea);
     }
 
     res.statusCode = 200;
