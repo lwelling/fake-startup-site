@@ -3,10 +3,12 @@ import { useState } from 'react';
 export default function Home() {
   const [message, setMessage] = useState('');
   const [toast, setToast] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!message.trim()) return;
+    if (!message.trim() || loading) return;
+    setLoading(true);
     try {
       const res = await fetch('/api/snarky', {
         method: 'POST',
@@ -19,6 +21,8 @@ export default function Home() {
       setTimeout(() => setToast(''), 5000);
     } catch (err) {
       console.error(err);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -32,8 +36,12 @@ export default function Home() {
             className="w-full p-3 rounded-md text-gray-900" rows="4" placeholder="Send me a message..."
             value={message} onChange={(e) => setMessage(e.target.value)}
           />
-          <button className="w-full py-3 bg-purple-600 hover:bg-purple-500 rounded-md font-semibold" type="submit">
-            Contact Me
+          <button
+            className="w-full py-3 bg-purple-600 hover:bg-purple-500 rounded-md font-semibold disabled:opacity-50"
+            type="submit"
+            disabled={loading}
+          >
+            {loading ? 'Sending...' : 'Contact Me'}
           </button>
         </form>
         {toast && (
