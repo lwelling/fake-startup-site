@@ -1,5 +1,4 @@
 // Basic random generator used when no key is provided or the API fails
-const emoji = require('node-emoji');
 
 function getRandom(arr) {
   return arr[Math.floor(Math.random() * arr.length)];
@@ -73,42 +72,6 @@ function fallbackPitch(idea) {
   return { name, tagline, hero, features, testimonials };
 }
 
-function normalizeIcons(pitch) {
-  const alias = {
-    slap: 'raised_back_of_hand',
-  };
-
-  const convert = (icon) => {
-    if (!icon) return icon;
-    const trimmed = icon.trim();
-    const cleaned = trimmed
-      .replace(/(^:+|:+$)/g, '')
-      .replace(/[-_ ]?(icon|emoji)$/i, '');
-    const mapped = alias[cleaned.toLowerCase()];
-    const target = mapped || cleaned;
-    let emojified = emoji.emojify(`:${target}:`);
-    if (emojified !== `:${target}:`) return emojified;
-    if (emoji.has(target)) return emoji.get(target);
-    const results = emoji.search(target);
-    if (results.length > 0) return results[0].emoji;
-    return '❓';
-  };
-  if (Array.isArray(pitch.features)) {
-    pitch.features = pitch.features.map((f) => ({
-      ...f,
-      icon: convert(f.icon),
-    }));
-  }
-  if (Array.isArray(pitch.testimonials)) {
-    pitch.testimonials = pitch.testimonials.map((t) => ({
-      ...t,
-      icon: convert(t.icon),
-    }));
-  }
-  return pitch;
-}
-
-
 module.exports = async function handler(req, res) {
   if (req.method !== 'POST') {
     res.statusCode = 405;
@@ -132,7 +95,7 @@ module.exports = async function handler(req, res) {
     console.log("No open api key in env:", !process.env.OPENAI_API_KEY)
     // If no OpenAI key is present, fall back to a random generator
     if (!process.env.OPENAI_API_KEY) {
-      const generated = normalizeIcons(fallbackPitch(idea));
+      const generated = fallbackPitch(idea);
       res.statusCode = 200;
       res.setHeader('Content-Type', 'application/json');
       res.end(JSON.stringify(generated));
@@ -201,7 +164,7 @@ module.exports = async function handler(req, res) {
       generated = fallbackPitch(idea);
     }
 
-    generated = normalizeIcons(generated);
+    // Icons are already returned as emoji characters
 
     res.statusCode = 200;
     res.setHeader('Content-Type', 'application/json');
@@ -212,7 +175,7 @@ module.exports = async function handler(req, res) {
     // If we have a failure from OpenAI, try the fallback generator
     if (req.body && req.body.idea) {
       try {
-        const generated = normalizeIcons(fallbackPitch(req.body.idea));
+        const generated = fallbackPitch(req.body.idea);
         res.statusCode = 200;
         res.setHeader('Content-Type', 'application/json');
         res.end(JSON.stringify(generated));
