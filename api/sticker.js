@@ -1,10 +1,10 @@
 const getRandom = (arr) => arr[Math.floor(Math.random() * arr.length)];
 
 const fallbackStickers = [
-  "Slap on the \"Super Saiyan Speedster\"—a chibi warrior powering up so hard your car practically gains 50 horsepower just from the decal.",
-  "Rock the \"Kawaii Drift Queen\" sticker: pastel hair, big eyes, and a wink that tells the world you were born to rule the parking lot.",
-  "Try the \"Mecha Overdrive\"—a giant robot fist bumping your bumper, because nothing screams \"cool driver\" like mecha swagger.",
-  "Embrace the \"Magical Girl Turbo\": sparkles, hearts, and enough dramatic flair to make stoplights swoon in your presence.",
+  'Witness the "Awkward Bento Date"—a blushing anime boy spilling soy sauce everywhere while praising you for rocking this sticker.',
+  'The "Otaku Dance Off" shows a sweat-drenched character busting clumsy moves and cheering you on for repping anime on the road.',
+  'Sport the "Magical Girl Mishap"—a heroine mid-transformation tripping over her own wand yet applauding your bold taste in car decor.',
+  'Behold the "Mecha Fangirl Frenzy"—an overexcited pilot hugging a giant robot leg, thrilled you slapped this on your bumper.',
 ];
 
 module.exports = async function handler(req, res) {
@@ -35,7 +35,7 @@ module.exports = async function handler(req, res) {
           {
             role: 'user',
             content:
-              'Invent a short, ridiculously enthusiastic description of an anime-themed car sticker. Praise the driver for being unbelievably cool for putting anime stickers on their car. Respond with a single sentence only.',
+              'Describe in one enthusiastic sentence an anime car sticker depicting a cringe or awkward scene. Compliment the driver for boldly displaying it.',
           },
         ],
         max_tokens: 60,
