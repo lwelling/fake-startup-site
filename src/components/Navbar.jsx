@@ -10,6 +10,9 @@ export default function Navbar() {
         <li>
           <Link to="/brainrotaas" className="hover:underline">BrainROTAaS</Link>
         </li>
+        <li>
+          <Link to="/heyjamo" className="hover:underline">HeyJamo</Link>
+        </li>
       </ul>
     </nav>
   );
