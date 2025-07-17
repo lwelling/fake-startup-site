@@ -176,23 +176,27 @@ export default function BrainRotaas() {
     <div className={`min-h-screen ${style.bg} ${style.text}`}>
       <div className="max-w-6xl mx-auto p-8 space-y-16">
         <header className="text-center space-y-8">
-          <form onSubmit={handleSubmit} className="space-y-4 max-w-xl mx-auto">
-            <input
-              type="text"
-              value={idea}
-              onChange={(e) => setIdea(e.target.value)}
-              placeholder="Describe your startup idea..."
-              className="w-full p-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 placeholder-gray-500 bg-white"
-            />
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-blue-600 text-white py-3 rounded-md font-semibold hover:bg-blue-700 transition disabled:opacity-50"
-            >
-              {loading ? 'Generating...' : 'Generate Pitch'}
-            </button>
-          </form>
-          <p className="max-w-xl mx-auto text-lg">Enter anything from your wildest idea to a half-baked concept and we'll whip up a convincing pitch. Hit the button above and see what happens!</p>
+          {!pitch && (
+            <>
+              <form onSubmit={handleSubmit} className="space-y-4 max-w-xl mx-auto">
+                <input
+                  type="text"
+                  value={idea}
+                  onChange={(e) => setIdea(e.target.value)}
+                  placeholder="Describe your startup idea..."
+                  className="w-full p-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 placeholder-gray-500 bg-white"
+                />
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full bg-blue-600 text-white py-3 rounded-md font-semibold hover:bg-blue-700 transition disabled:opacity-50"
+                >
+                  {loading ? 'Generating...' : 'Generate Pitch'}
+                </button>
+              </form>
+              <p className="max-w-xl mx-auto text-lg">Enter anything from your wildest idea to a half-baked concept and we'll whip up a convincing pitch. Hit the button above and see what happens!</p>
+            </>
+          )}
           {pitch && (
             <div className="space-y-4 mt-8">
               <h1 className="text-4xl md:text-6xl font-extrabold">{pitch.name}</h1>
