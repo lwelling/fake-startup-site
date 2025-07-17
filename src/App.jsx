@@ -60,15 +60,18 @@ function randomTestimonial() {
 }
 
 function fallbackPitch(idea) {
-  const name = ${getRandom([
-    'Hyper',
-    'Quantum',
-    'NextGen',
-    'Sky',
-    'Deep',
-    'Spark',
-    'Venture',
-  ])} ${getRandom(['Labs', 'Works', 'Dynamics', 'Systems', 'Industries'])};
+  const name =
+    getRandom([
+      'Hyper',
+      'Quantum',
+      'NextGen',
+      'Sky',
+      'Deep',
+      'Spark',
+      'Venture',
+    ]) +
+    ' ' +
+    getRandom(['Labs', 'Works', 'Dynamics', 'Systems', 'Industries']);
 
   const words = [
     'Seamless',
@@ -81,7 +84,7 @@ function fallbackPitch(idea) {
     'Frictionless',
     'Decentralized',
   ];
-  const tagline = ${getRandom(words)} ${getRandom(words)} ${getRandom(words)};
+  const tagline = `${getRandom(words)} ${getRandom(words)} ${getRandom(words)}`;
   const hero = At ${name}, we reinvent ${idea} with scalable disruption. Our platform unleashes frictionless synergy to drive unprecedented ROI.;
   const features = [randomFeature(), randomFeature(), randomFeature()];
   const testimonials = [randomTestimonial(), randomTestimonial()];
