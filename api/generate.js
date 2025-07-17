@@ -80,6 +80,7 @@ module.exports = async function handler(req, res) {
     });
 
     const message = completion.choices?.[0]?.message?.content;
+    console.log('OpenAI response:', message);
     if (!message) {
       throw new Error('No response');
     }
