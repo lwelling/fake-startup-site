@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 
 export default function AnimeStickers() {
   const [description, setDescription] = useState('');
+  const [pitch, setPitch] = useState('');
   const [loading, setLoading] = useState(false);
 
   const fetchSticker = async () => {
@@ -10,6 +11,7 @@ export default function AnimeStickers() {
       const res = await fetch('/api/sticker');
       const data = await res.json();
       setDescription(data.description || '');
+      setPitch(data.pitch || '');
     } catch (err) {
       console.error(err);
     } finally {
@@ -26,13 +28,22 @@ export default function AnimeStickers() {
       <div className="space-y-6 text-center max-w-xl">
         <h1 className="text-4xl font-extrabold">Anime Sticker of the Day</h1>
         <p className="text-lg">{description}</p>
-        <button
-          onClick={fetchSticker}
-          disabled={loading}
-          className="px-5 py-3 bg-white text-purple-700 font-semibold rounded shadow hover:bg-purple-50 disabled:opacity-50"
-        >
-          {loading ? 'Refreshing...' : 'Refresh'}
-        </button>
+        {pitch && <p className="text-lg italic">{pitch}</p>}
+        <div className="space-x-4">
+          <button
+            onClick={fetchSticker}
+            disabled={loading}
+            className="px-5 py-3 bg-white text-purple-700 font-semibold rounded shadow hover:bg-purple-50 disabled:opacity-50"
+          >
+            {loading ? 'Refreshing...' : 'Refresh'}
+          </button>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-5 py-3 bg-yellow-400 text-purple-900 font-semibold rounded shadow hover:bg-yellow-300"
+          >
+            Buy It Now
+          </button>
+        </div>
       </div>
     </div>
   );
