@@ -41,6 +41,9 @@ module.exports = async function handler(req, res) {
 
   try {
     const { idea } = req.body || {};
+    console.log("🔹 Received idea:", idea);
+    console.log("🔹 OPENAI_API_KEY present?", !!process.env.OPENAI_API_KEY);
+
     if (!idea) {
       res.statusCode = 400;
       res.setHeader('Content-Type', 'application/json');
@@ -48,6 +51,7 @@ module.exports = async function handler(req, res) {
       return;
     }
 
+    console.log("No open api key in env:", !process.env.OPENAI_API_KEY)
     // If no OpenAI key is present, fall back to a random generator
     if (!process.env.OPENAI_API_KEY) {
       const generated = fallbackPitch(idea);
@@ -56,7 +60,8 @@ module.exports = async function handler(req, res) {
       res.end(JSON.stringify(generated));
       return;
     }
-
+    
+    console.log("🔹 Sending request to OpenAI...");
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -80,9 +85,12 @@ module.exports = async function handler(req, res) {
       throw new Error(`OpenAI API error: ${response.status} ${response.statusText}`);
     }
 
+    console.log("🔹 OpenAI raw response object:", response);
+
     const data = await response.json();
+    console.log("🔹 Parsed OpenAI response JSON:", data);
     const content = data.choices?.[0]?.message?.content;
-    console.log('OpenAI response:', content);
+    console.log("🔹 ChatGPT message content:", content);
     if (!content) {
       throw new Error('No response');
     }
@@ -91,18 +99,14 @@ module.exports = async function handler(req, res) {
 
     try {
       const parsed = JSON.parse(content);
+      console.log("✅ Successfully parsed:", parsed);
       name = parsed.name;
       tagline = parsed.tagline;
       hero = parsed.hero;
     } catch (err) {
-      console.error('Failed to parse OpenAI response:', content, err);
-      const generated = fallbackPitch(idea);
-      res.statusCode = 200;
-      res.setHeader('Content-Type', 'application/json');
-      res.end(JSON.stringify(generated));
-      return;
+      console.error("❌ Failed to parse content:", content);
+      console.error(err);
     }
-
 
     res.statusCode = 200;
     res.setHeader('Content-Type', 'application/json');
