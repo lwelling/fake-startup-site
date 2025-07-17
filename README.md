@@ -1,8 +1,10 @@
 # fake-startup-site
 
-This is a simple Vite + React + Tailwind project. The homepage now lets you type
-in a startup idea and instantly generates a pretend pitch. Enter something like
-`Uber for squirrels` and you'll get:
+This is a simple Vite + React + Tailwind project.
+Visit the root of the site for a splash page at `lkw.lol` complete with a snarky
+contact form. The original startup pitch generator now lives at `/brainrotaas`.
+There you can type a startup idea and instantly generate a pretend pitch. Enter
+something like `Uber for squirrels` and you'll get:
 
 - A startup name
 - A three-word tagline
