@@ -175,7 +175,7 @@ export default function App() {
               <h1 className="text-4xl md:text-6xl font-extrabold">{pitch.name}</h1>
               <p className="text-xl md:text-2xl font-medium">{pitch.tagline}</p>
               <p className="max-w-2xl mx-auto">{pitch.hero}</p>
-              <button className={mt-4 px-6 py-3 rounded-lg shadow-lg hover:shadow-xl transition ${style.button}}>
+              <button className={`mt-4 px-6 py-3 rounded-lg shadow-lg hover:shadow-xl transition ${style.button}`}>
                 Get Started
               </button>
             </div>
