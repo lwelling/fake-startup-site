@@ -100,12 +100,23 @@ async function generatePitch(idea) {
 
     if (!response.ok) throw new Error('Bad response');
 
-    return await response.json();
+    const result = await response.json();
+
+    // Inject emoji fallback icons into API results if they’re missing
+    if (Array.isArray(result.features)) {
+      result.features = result.features.map((f) => ({
+        ...f,
+        icon: f.icon || getRandom(['🚀', '⚡️', '💡', '📦', '🔧', '🎯']),
+      }));
+    }
+
+    return result;
   } catch (err) {
     console.error(err);
     return fallbackPitch(idea);
   }
 }
+
 
 const backgrounds = [
   'bg-gradient-to-r from-pink-500 via-red-500 to-yellow-500',
