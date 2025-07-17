@@ -35,13 +35,7 @@ export default function AnimeStickers() {
             disabled={loading}
             className="px-5 py-3 bg-white text-purple-700 font-semibold rounded shadow hover:bg-purple-50 disabled:opacity-50"
           >
-            {loading ? 'Refreshing...' : 'Refresh'}
-          </button>
-          <button
-            onClick={() => window.location.reload()}
-            className="px-5 py-3 bg-yellow-400 text-purple-900 font-semibold rounded shadow hover:bg-yellow-300"
-          >
-            Buy It Now
+            {loading ? 'Buying...' : 'Buy It Now'}
           </button>
         </div>
       </div>
