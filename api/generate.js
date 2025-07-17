@@ -87,7 +87,22 @@ module.exports = async function handler(req, res) {
       throw new Error('No response');
     }
 
-    const { name, tagline, hero } = JSON.parse(content);
+    let name, tagline, hero;
+
+    try {
+      const parsed = JSON.parse(content);
+      name = parsed.name;
+      tagline = parsed.tagline;
+      hero = parsed.hero;
+    } catch (err) {
+      console.error('Failed to parse OpenAI response:', content, err);
+      const generated = fallbackPitch(idea);
+      res.statusCode = 200;
+      res.setHeader('Content-Type', 'application/json');
+      res.end(JSON.stringify(generated));
+      return;
+    }
+
 
     res.statusCode = 200;
     res.setHeader('Content-Type', 'application/json');
