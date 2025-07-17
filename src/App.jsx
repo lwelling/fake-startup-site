@@ -33,36 +33,18 @@ function fallbackPitch(idea) {
 }
 
 async function generatePitch(idea) {
-  const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
-  if (!apiKey) {
-    return fallbackPitch(idea);
-  }
-
   try {
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    const response = await fetch('/api/generate', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${apiKey}`,
       },
-      body: JSON.stringify({
-        model: 'gpt-3.5-turbo',
-        messages: [
-          {
-            role: 'user',
-            content:
-              `Create a ridiculous startup pitch for "${idea}" and reply with JSON having the fields name, tagline and hero.`,
-          },
-        ],
-        max_tokens: 80,
-        temperature: 1,
-      }),
+      body: JSON.stringify({ idea }),
     });
 
-    const data = await response.json();
-    const message = data.choices?.[0]?.message?.content;
-    if (!message) throw new Error('No response');
-    return JSON.parse(message);
+    if (!response.ok) throw new Error('Bad response');
+
+    return await response.json();
   } catch (err) {
     console.error(err);
     return fallbackPitch(idea);
