@@ -1,5 +1,7 @@
 import { useState } from 'react';
 
+const icons = ['⚡️', '🚀', '✨', '📈', '🧠', '☁️', '🔒', '🔧', '🎯', '🤖', '💡', '📦', '📲', '📣', '🛠️'];
+
 function getRandom(arr) {
   return arr[Math.floor(Math.random() * arr.length)];
 }
@@ -26,7 +28,6 @@ function randomFeature() {
     'Plug in and go. It just works.',
   ];
 
-  const icons = ['⚡️', '🚀', '✨', '📈', '🧠', '☁️', '🔒', '🔧', '🎯', '🤖', '💡', '📦', '📲', '📣', '🛠️'];
 
   return {
     title: getRandom(titles),
