@@ -1,12 +1,12 @@
 import { useState } from 'react';
 
-const icons = [
-  '⚡️', '🚀', '✨', '📈', '🧠', '☁️', '🔒', '🔧', '🎯', '🤖', '💡', '📦', '📲', '📣', '🛠️',
-];
-
 function getRandom(arr) {
   return arr[Math.floor(Math.random() * arr.length)];
 }
+
+const icons = [
+    '⚡️', '🚀', '✨', '📈', '🧠', '☁️', '🔒', '🔧', '🎯', '🤖', '💡', '📦', '📲', '📣', '🛠️',
+  ];
 
 // Fallback generator used when no API key is provided or a request fails
 function randomFeature() {
@@ -39,7 +39,6 @@ function randomFeature() {
     'Share, edit, and thrive — all live.',
     'Plug in and go. It just works.',
   ];
-
 
   return {
     title: getRandom(titles),
