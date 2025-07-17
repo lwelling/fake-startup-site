@@ -1,5 +1,14 @@
 import { useState } from 'react';
 
+function renderIcon(icon) {
+  if (typeof icon !== 'string') return icon;
+  const trimmed = icon.trim();
+  if (/^(https?:\/\/|\/)/.test(trimmed)) {
+    return <img src={trimmed} alt="" className="w-8 h-8" />;
+  }
+  return trimmed;
+}
+
 function getRandom(arr) {
   return arr[Math.floor(Math.random() * arr.length)];
 }
@@ -221,7 +230,7 @@ export default function BrainRotaas() {
                     key={i}
                     className="bg-white text-gray-800 p-6 rounded-lg shadow flex flex-col items-start"
                   >
-                    <div className="text-3xl mb-2">{f.icon}</div>
+                    <div className="text-3xl mb-2">{renderIcon(f.icon)}</div>
                     <h3 className="text-xl font-semibold mb-2">{f.title}</h3>
                     <p>{f.description}</p>
                   </div>
@@ -237,7 +246,7 @@ export default function BrainRotaas() {
                     key={i}
                     className="bg-white text-gray-800 p-6 rounded-lg shadow"
                   >
-                    <div className="text-3xl mb-2">{t.icon || '💬'}</div>
+                    <div className="text-3xl mb-2">{renderIcon(t.icon || '💬')}</div>
                     <p className="italic mb-2">"{t.quote}"</p>
                     <p className="font-semibold">- {t.name}</p>
                   </div>
