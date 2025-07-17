@@ -4,11 +4,7 @@ function getRandom(arr) {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
-const emojiIcons = [
-  '⚡️', '🚀', '✨', '📈', '🧠', '☁️', '🔒', '🔧', '🎯',
-  '🤖', '💡', '📦', '📲', '📣', '🛠️', '🌈', '🦾', '📡',
-];
-
+// Fallback generator used when no API key is provided or a request fails
 function randomFeature() {
   const titles = [
     'Instant Onboarding',
@@ -40,10 +36,14 @@ function randomFeature() {
     'Plug in and go. It just works.',
   ];
 
+  const icons = [
+    '⚡️', '🚀', '✨', '📈', '🧠', '☁️', '🔒', '🔧', '🎯', '🤖', '💡', '📦', '📲', '📣', '🛠️',
+  ];
+
   return {
     title: getRandom(titles),
     description: getRandom(descriptions),
-    icon: getRandom(emojiIcons),
+    icon: getRandom(icons),
   };
 }
 
@@ -59,8 +59,8 @@ function randomTestimonial() {
   return { name: getRandom(names), quote: getRandom(quotes) };
 }
 
-function generatePitch(idea) {
-  const name = `${getRandom([
+function fallbackPitch(idea) {
+  const name = ${getRandom([
     'Hyper',
     'Quantum',
     'NextGen',
@@ -68,7 +68,7 @@ function generatePitch(idea) {
     'Deep',
     'Spark',
     'Venture',
-  ])} ${getRandom(['Labs', 'Works', 'Dynamics', 'Systems', 'Industries'])}`;
+  ])} ${getRandom(['Labs', 'Works', 'Dynamics', 'Systems', 'Industries'])};
 
   const words = [
     'Seamless',
@@ -81,11 +81,40 @@ function generatePitch(idea) {
     'Frictionless',
     'Decentralized',
   ];
-  const tagline = `${getRandom(words)} ${getRandom(words)} ${getRandom(words)}`;
-  const hero = `At ${name}, we reinvent ${idea} with scalable disruption. Our platform unleashes frictionless synergy to drive unprecedented ROI.`;
-  const features = [randomFeature(), randomFeature(), randomFeature()];
+  const tagline = ${getRandom(words)} ${getRandom(words)} ${getRandom(words)};
+  const hero = At ${name}, we reinvent ${idea} with scalable disruption. Our platform unleashes frictionless synergy to drive unprecedented ROI.;
+  const features = Array.from({ length: 3 }, () => randomFeature());
+  
   const testimonials = [randomTestimonial(), randomTestimonial()];
-  return { name, tagline, hero, features, testimonials };
+  return {
+    name,
+    tagline,
+    hero,
+    features: [randomFeature(), randomFeature(), randomFeature()].map((f) => ({
+      ...f,
+      icon: typeof f.icon === 'string' ? f.icon : '✨', // fallback emoji
+    })),
+    testimonials: [randomTestimonial(), randomTestimonial()],
+  };
+}
+
+async function generatePitch(idea) {
+  try {
+    const response = await fetch('/api/generate', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ idea }),
+    });
+
+    if (!response.ok) throw new Error('Bad response');
+
+    return await response.json();
+  } catch (err) {
+    console.error(err);
+    return fallbackPitch(idea);
+  }
 }
 
 const backgrounds = [
@@ -118,9 +147,9 @@ export default function App() {
     text: textStyles[0],
   });
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const generated = generatePitch(idea || 'your needs');
+    const generated = await generatePitch(idea || 'your needs');
     setPitch(generated);
     setStyle({
       bg: getRandom(backgrounds),
@@ -130,7 +159,7 @@ export default function App() {
   };
 
   return (
-    <div className={`min-h-screen ${style.bg} ${style.text}`}>
+    <div className={min-h-screen ${style.bg} ${style.text}}>
       <div className="max-w-6xl mx-auto p-8 space-y-16">
         <header className="text-center space-y-8">
           <form onSubmit={handleSubmit} className="space-y-4 max-w-xl mx-auto">
@@ -153,7 +182,7 @@ export default function App() {
               <h1 className="text-4xl md:text-6xl font-extrabold">{pitch.name}</h1>
               <p className="text-xl md:text-2xl font-medium">{pitch.tagline}</p>
               <p className="max-w-2xl mx-auto">{pitch.hero}</p>
-              <button className={`mt-4 px-6 py-3 rounded-lg shadow-lg hover:shadow-xl transition ${style.button}`}>
+              <button className={mt-4 px-6 py-3 rounded-lg shadow-lg hover:shadow-xl transition ${style.button}}>
                 Get Started
               </button>
             </div>
@@ -165,9 +194,12 @@ export default function App() {
             <section className="space-y-8">
               <h2 className="text-3xl font-bold text-center">Features</h2>
               <div className="grid gap-8 md:grid-cols-3">
-                {pitch.features.map((f, i) => (
-                  <div key={i} className="bg-white text-gray-800 p-6 rounded-lg shadow">
-                    <div className="text-4xl mb-3">{f.icon}</div>
+                {pitch.features?.map((f, i) => (
+                  <div
+                    key={i}
+                    className="bg-white text-gray-800 p-6 rounded-lg shadow"
+                  >
+                    <div className="text-3xl mb-2">{f.icon}</div>
                     <h3 className="text-xl font-semibold mb-2">{f.title}</h3>
                     <p>{f.description}</p>
                   </div>
@@ -178,8 +210,11 @@ export default function App() {
             <section className="space-y-8">
               <h2 className="text-3xl font-bold text-center">Testimonials</h2>
               <div className="grid gap-8 md:grid-cols-2">
-                {pitch.testimonials.map((t, i) => (
-                  <div key={i} className="bg-white text-gray-800 p-6 rounded-lg shadow">
+                {pitch.testimonials?.map((t, i) => (
+                  <div
+                    key={i}
+                    className="bg-white text-gray-800 p-6 rounded-lg shadow"
+                  >
                     <p className="italic mb-2">"{t.quote}"</p>
                     <p className="font-semibold">- {t.name}</p>
                   </div>
