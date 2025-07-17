@@ -1,4 +1,6 @@
 // Basic random generator used when no key is provided or the API fails
+const emoji = require('node-emoji');
+
 function getRandom(arr) {
   return arr[Math.floor(Math.random() * arr.length)];
 }
@@ -71,6 +73,30 @@ function fallbackPitch(idea) {
   return { name, tagline, hero, features, testimonials };
 }
 
+function normalizeIcons(pitch) {
+  const convert = (icon) => {
+    if (!icon) return icon;
+    const trimmed = icon.trim();
+    const emojified = emoji.emojify(trimmed);
+    if (emojified !== trimmed) return emojified;
+    if (emoji.has(trimmed)) return emoji.get(trimmed);
+    return icon;
+  };
+  if (Array.isArray(pitch.features)) {
+    pitch.features = pitch.features.map((f) => ({
+      ...f,
+      icon: convert(f.icon),
+    }));
+  }
+  if (Array.isArray(pitch.testimonials)) {
+    pitch.testimonials = pitch.testimonials.map((t) => ({
+      ...t,
+      icon: convert(t.icon),
+    }));
+  }
+  return pitch;
+}
+
 
 module.exports = async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -95,7 +121,7 @@ module.exports = async function handler(req, res) {
     console.log("No open api key in env:", !process.env.OPENAI_API_KEY)
     // If no OpenAI key is present, fall back to a random generator
     if (!process.env.OPENAI_API_KEY) {
-      const generated = fallbackPitch(idea);
+      const generated = normalizeIcons(fallbackPitch(idea));
       res.statusCode = 200;
       res.setHeader('Content-Type', 'application/json');
       res.end(JSON.stringify(generated));
@@ -164,6 +190,8 @@ module.exports = async function handler(req, res) {
       generated = fallbackPitch(idea);
     }
 
+    generated = normalizeIcons(generated);
+
     res.statusCode = 200;
     res.setHeader('Content-Type', 'application/json');
     res.end(JSON.stringify(generated));
@@ -173,7 +201,7 @@ module.exports = async function handler(req, res) {
     // If we have a failure from OpenAI, try the fallback generator
     if (req.body && req.body.idea) {
       try {
-        const generated = fallbackPitch(req.body.idea);
+        const generated = normalizeIcons(fallbackPitch(req.body.idea));
         res.statusCode = 200;
         res.setHeader('Content-Type', 'application/json');
         res.end(JSON.stringify(generated));
