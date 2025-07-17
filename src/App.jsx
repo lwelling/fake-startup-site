@@ -79,7 +79,13 @@ async function generatePitch(idea) {
     });
 
     if (!response.ok) throw new Error('Bad response');
-    return await response.json();
+    const data = await response.json();
+    data.features = data.features.map((f) => ({
+      ...f,
+      icon: f.icon && f.icon.startsWith('http') ? getRandom(icons) : f.icon,
+    }));
+    return data;
+    
   } catch (err) {
     console.error(err);
     return fallbackPitch(idea);
