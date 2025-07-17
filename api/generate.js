@@ -1,5 +1,3 @@
-const OpenAI = require('openai');
-
 // Basic random generator used when no key is provided or the API fails
 function getRandom(arr) {
   return arr[Math.floor(Math.random() * arr.length)];
@@ -32,14 +30,6 @@ function fallbackPitch(idea) {
   return { name, tagline, hero };
 }
 
-let openai;
-if (process.env.OPENAI_API_KEY) {
-  try {
-    openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-  } catch (err) {
-    console.error('Failed to initialize OpenAI client:', err);
-  }
-}
 
 module.exports = async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -59,7 +49,7 @@ module.exports = async function handler(req, res) {
     }
 
     // If no OpenAI key is present, fall back to a random generator
-    if (!openai) {
+    if (!process.env.OPENAI_API_KEY) {
       const generated = fallbackPitch(idea);
       res.statusCode = 200;
       res.setHeader('Content-Type', 'application/json');
@@ -67,27 +57,41 @@ module.exports = async function handler(req, res) {
       return;
     }
 
-    const completion = await openai.chat.completions.create({
-      model: 'gpt-3.5-turbo',
-      messages: [
-        {
-          role: 'user',
-          content: `Create a ridiculous startup pitch for "${idea}" and reply with JSON having the fields name, tagline and hero.`,
-        },
-      ],
-      max_tokens: 80,
-      temperature: 1,
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: 'gpt-3.5-turbo',
+        messages: [
+          {
+            role: 'user',
+            content: `Create a ridiculous startup pitch for "${idea}" and reply with JSON having the fields name, tagline and hero.`,
+          },
+        ],
+        max_tokens: 80,
+        temperature: 1,
+      }),
     });
 
-    const message = completion.choices?.[0]?.message?.content;
-    console.log('OpenAI response:', message);
-    if (!message) {
+    if (!response.ok) {
+      throw new Error(`OpenAI API error: ${response.status} ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    const content = data.choices?.[0]?.message?.content;
+    console.log('OpenAI response:', content);
+    if (!content) {
       throw new Error('No response');
     }
 
+    const { name, tagline, hero } = JSON.parse(content);
+
     res.statusCode = 200;
     res.setHeader('Content-Type', 'application/json');
-    res.end(message);
+    res.end(JSON.stringify({ name, tagline, hero }));
   } catch (err) {
     console.error(err);
 
