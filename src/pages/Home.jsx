@@ -36,7 +36,7 @@ export default function Home() {
         <p className="text-xl">Enter at your own peril.</p>
         <form onSubmit={handleSubmit} className="space-y-4">
           <textarea
-            className="w-full p-3 rounded-md text-gray-900" rows="4" placeholder="Send me a message..."
+            className="w-full p-3 rounded-md text-gray-900" rows="4" placeholder="ugh...WHAT??"
             value={message} onChange={(e) => setMessage(e.target.value)}
           />
           <button
