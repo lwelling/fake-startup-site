@@ -16,9 +16,6 @@ export default function Navbar() {
         <li>
           <Link to="/gaslight" className="hover:underline">GaslightGPT</Link>
         </li>
-        <li>
-          <Link to="/heyBrad" className="hover:underline">heyBrad</Link>
-        </li>
       </ul>
     </nav>
   );
