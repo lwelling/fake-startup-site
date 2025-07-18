@@ -1,4 +1,5 @@
-const fallbackGaslight = (input, escalate) => {
+const fallbackGaslight = (input, n) => {
+  const escalate = n > 1;
   const replies = escalate
     ? [
         "Look, we've been over this. You're obviously confused.",
@@ -27,7 +28,7 @@ module.exports = async function handler(req, res) {
     return;
   }
 
-  const { input, escalate } = req.body || {};
+  const { input, n = 0 } = req.body || {};
   if (!input) {
     res.statusCode = 400;
     res.setHeader('Content-Type', 'application/json');
@@ -38,14 +39,14 @@ module.exports = async function handler(req, res) {
   if (!process.env.OPENAI_API_KEY) {
     res.statusCode = 200;
     res.setHeader('Content-Type', 'application/json');
-    res.end(JSON.stringify(fallbackGaslight(input, escalate)));
+    res.end(JSON.stringify(fallbackGaslight(input, n)));
     return;
   }
 
   try {
-    const prompt = escalate
-      ? `You've already offered gentle therapeutic insight about "${input}". Now respond with more assertiveness and quiet intensity — as if guiding the user toward a truth they may not want to face. The tone should remain clinical, but with a growing undercurrent of inevitability. Return ONLY JSON { reply: string, sources: string[] } with two fictional but unnervingly titled citations.`
-      : `Respond to the user's statement "${input}" as a compassionate therapist. Offer a warm, reflective response that gently challenges or reframes their view. Then provide two fictional, soothing citations. Return ONLY JSON { reply: string, sources: string[] }`;
+    const prompt = (n > 1)
+      ? `You are an ominous dystopian therapist figure who is gaslighting the user. You've now responded to "${input}" ${n} times. Escalate: undermine the user’s memory and grip on reality while remaining composed and clinical. Use confident, therapeutic language. Return ONLY JSON { reply: string, sources: string[] } with two fictional academic-style citations.`
+      : `You are an ominous dystopian therapist figure who is gaslighting the user. Respond to "${input}" with unsettling professional calm. Subtly imply their perception is incorrect. Use therapeutic language. Return ONLY JSON { reply: string, sources: string[] }`;
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -77,7 +78,7 @@ module.exports = async function handler(req, res) {
       console.error('Parsing failed:', err);
     }
     if (!parsed || !parsed.reply) {
-      parsed = fallbackGaslight(input, escalate);
+      parsed = fallbackGaslight(input, n);
     }
     res.statusCode = 200;
     res.setHeader('Content-Type', 'application/json');
@@ -86,6 +87,6 @@ module.exports = async function handler(req, res) {
     console.error(err);
     res.statusCode = 200;
     res.setHeader('Content-Type', 'application/json');
-    res.end(JSON.stringify(fallbackGaslight(input, escalate)));
+    res.end(JSON.stringify(fallbackGaslight(input, n)));
   }
 };
