@@ -13,6 +13,9 @@ export default function Navbar() {
         <li>
           <Link to="/shi-spot" className="hover:underline">Shi Spot</Link>
         </li>
+        <li>
+          <Link to="/gaslight" className="hover:underline">GaslightGPT</Link>
+        </li>
       </ul>
     </nav>
   );
