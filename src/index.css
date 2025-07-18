@@ -35,35 +35,47 @@
 }
 
 /* Escalation body styles */
-.disrupt-1 {
+.disrupt-1 *:nth-child(3n) {
   font-family: 'Georgia', serif;
   font-weight: 700;
-  transition: transform 0.3s ease;
 }
 
-.disrupt-2 {
+.disrupt-1 {
+  animation: flicker 1s infinite;
+}
+
+.disrupt-2 *:nth-child(4n) {
   font-family: 'Courier New', monospace;
   font-weight: 600;
   transform: skewX(-5deg);
-  transition: transform 0.3s ease;
 }
 
-.disrupt-3 {
+.disrupt-2 {
+  animation: flicker 0.5s infinite;
+}
+
+.disrupt-3 *:nth-child(odd) {
   font-family: 'Impact', fantasy;
   font-weight: 900;
   animation: glitch 0.7s infinite;
   transform: skewX(-10deg) rotate(-2deg) scale(1.02);
   filter: hue-rotate(45deg);
-  transition: transform 0.3s ease;
 }
 
-.disrupt-4 {
+.disrupt-3 {
+  animation: flicker 0.3s infinite;
+}
+
+.disrupt-4 *:nth-child(2n + 1) {
   font-family: 'Lucida Console', monospace;
   font-style: italic;
   color: crimson;
   transform: skewX(-15deg) rotate(-5deg) scale(1.05);
   filter: hue-rotate(180deg) invert(1);
-  transition: transform 0.3s ease;
+}
+
+.disrupt-4 {
+  animation: flicker 0.15s infinite;
 }
 
 body[data-noise]::before {
