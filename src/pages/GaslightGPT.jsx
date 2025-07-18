@@ -15,8 +15,7 @@ export default function GaslightGPT() {
     document.body.classList.remove('disrupt-1', 'disrupt-2', 'disrupt-3', 'disrupt-4');
     if (escalateCount > 0 && escalateCount < 4) {
       document.body.classList.add(`disrupt-${escalateCount}`);
-      document.body.dataset.noise =
-        '!@#$%^&*✶✷✸✹☠☢☣☤'.repeat(escalateCount * 2);
+      document.body.dataset.noise = '!@#$%^&*'.repeat(escalateCount);
     }
     if (escalateCount >= 4) {
       setShowError(true);
@@ -27,6 +26,12 @@ export default function GaslightGPT() {
       document.body.style.background = '';
       if (escalateCount === 0) delete document.body.dataset.noise;
     }
+
+    return () => {
+      document.body.classList.remove('disrupt-1', 'disrupt-2', 'disrupt-3', 'disrupt-4');
+      document.body.style.background = '';
+      delete document.body.dataset.noise;
+    };
   }, [escalateCount]);
 
   const send = async (escalate = false) => {
