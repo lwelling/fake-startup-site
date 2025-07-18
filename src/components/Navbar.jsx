@@ -11,9 +11,6 @@ export default function Navbar() {
           <Link to="/brainrotaas" className="hover:underline">BrainROTAaS</Link>
         </li>
         <li>
-          <Link to="/animestickers" className="hover:underline">Anime Stickers</Link>
-        </li>
-        <li>
           <Link to="/shi-spot" className="hover:underline">Shi Spot</Link>
         </li>
       </ul>
