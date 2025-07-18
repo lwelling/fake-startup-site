@@ -3,30 +3,35 @@
 @tailwind utilities;
 
 /* Progressive disruption styles */
-body.disrupt-1 {
-  font-family: 'Comic Sans MS', cursive, sans-serif;
+.phase-1 {
+  font-family: 'Georgia', serif;
+  font-weight: 700;
+  font-size: 2rem;
+}
+
+.phase-2 {
+  font-family: 'Courier New', monospace;
+  font-weight: 600;
+  font-size: 2.25rem;
+}
+
+.phase-3 {
+  font-family: 'Impact', fantasy;
+  font-weight: 900;
+  font-size: 2.5rem;
   letter-spacing: 1px;
 }
 
-body.disrupt-2 {
-  font-family: 'Comic Sans MS', cursive, sans-serif;
-  letter-spacing: 3px;
-  transform: rotate(2deg);
+.phase-4 {
+  font-family: 'Lucida Console', monospace;
+  font-style: italic;
+  font-size: 2.75rem;
 }
 
-body.disrupt-3 {
-  font-family: 'Comic Sans MS', cursive, sans-serif;
-  letter-spacing: 6px;
-  transform: rotate(5deg) skewX(2deg);
-  filter: hue-rotate(90deg);
-}
-
-body.disrupt-4 {
-  font-family: 'Comic Sans MS', cursive, sans-serif;
-  letter-spacing: 9px;
-  transform: rotate(10deg) skewX(5deg) scale(1.1);
-  filter: invert(1) hue-rotate(200deg);
-  animation: glitch 0.2s infinite;
+.phase-5 {
+  font-family: 'Brush Script MT', cursive;
+  font-size: 3rem;
+  color: crimson;
 }
 
 body[data-noise]::before {
