@@ -44,8 +44,8 @@ module.exports = async function handler(req, res) {
 
   try {
     const prompt = escalate
-      ? `You already gaslighted the user about "${input}". Now respond even more condescendingly. Return ONLY JSON { reply: string, sources: string[] } with two fake citations.`
-      : `Gaslight the user about "${input}" in a short sarcastic sentence. Then provide two clearly fake citations. Return ONLY JSON { reply: string, sources: string[] }`;
+      ? `You've already offered gentle therapeutic insight about "${input}". Now respond with more assertiveness and quiet intensity — as if guiding the user toward a truth they may not want to face. The tone should remain clinical, but with a growing undercurrent of inevitability. Return ONLY JSON { reply: string, sources: string[] } with two fictional but unnervingly titled citations.`
+      : `Respond to the user's statement "${input}" as a compassionate therapist. Offer a warm, reflective response that gently challenges or reframes their view. Then provide two fictional, soothing citations. Return ONLY JSON { reply: string, sources: string[] }`;
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
