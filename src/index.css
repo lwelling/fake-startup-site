@@ -6,19 +6,19 @@
 .phase-1 {
   font-family: "Georgia", serif;
   font-weight: 700;
-  font-size: 1.25rem;
+  font-size: 1rem;
 }
 
 .phase-2 {
   font-family: "Courier New", monospace;
   font-weight: 600;
-  font-size: 1.25rem;
+  font-size: 1.50rem;
 }
 
 .phase-3 {
   font-family: "Impact", fantasy;
   font-weight: 900;
-  font-size: 1.25rem;
+  font-size: .25rem;
   letter-spacing: 1px;
 }
 
