@@ -4,6 +4,7 @@ export default function GaslightGPT() {
   const [input, setInput] = useState('');
   const [reply, setReply] = useState('');
   const [sources, setSources] = useState([]);
+  const [expected, setExpected] = useState('');
   const [showSources, setShowSources] = useState(false);
   const [loading, setLoading] = useState(false);
   const [escalateCount, setEscalateCount] = useState(0);
@@ -44,6 +45,7 @@ export default function GaslightGPT() {
       const data = await res.json();
       setReply(data.reply || '');
       setSources(data.sources || []);
+      setExpected(data.expected || '');
       setShowSources(false);
     } catch (err) {
       console.error(err);
@@ -70,6 +72,7 @@ export default function GaslightGPT() {
     setInput('');
     setReply('');
     setSources([]);
+    setExpected('');
     setShowSources(false);
   };
 
@@ -113,6 +116,17 @@ export default function GaslightGPT() {
             <div className="flex space-x-4">
               <button onClick={() => setShowSources(true)} className="underline hover:text-green-500">Show Sources</button>
               <button onClick={handleEscalate} className="underline hover:text-green-500">{escalateLabel}</button>
+              {expected && (
+                <button
+                  onClick={() => {
+                    setInput(expected);
+                    handleEscalate();
+                  }}
+                  className="underline hover:text-green-500"
+                >
+                  {expected}
+                </button>
+              )}
             </div>
           </div>
         )}
