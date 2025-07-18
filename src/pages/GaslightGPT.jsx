@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export default function GaslightGPT() {
   const [input, setInput] = useState('');
@@ -6,6 +6,25 @@ export default function GaslightGPT() {
   const [sources, setSources] = useState([]);
   const [showSources, setShowSources] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [escalateCount, setEscalateCount] = useState(0);
+  const [showError, setShowError] = useState(false);
+
+  useEffect(() => {
+    document.body.classList.remove('disrupt-1', 'disrupt-2', 'disrupt-3', 'disrupt-4');
+    if (escalateCount > 0 && escalateCount < 5) {
+      document.body.classList.add(`disrupt-${escalateCount}`);
+      document.body.dataset.noise = '!@#$%^&*'.repeat(escalateCount);
+    }
+    if (escalateCount >= 5) {
+      setShowError(true);
+      document.body.className = '';
+      document.body.style.background = 'white';
+      delete document.body.dataset.noise;
+    } else {
+      document.body.style.background = '';
+      if (escalateCount === 0) delete document.body.dataset.noise;
+    }
+  }, [escalateCount]);
 
   const send = async (escalate = false) => {
     if (!input.trim() || loading) return;
@@ -32,7 +51,28 @@ export default function GaslightGPT() {
     send(false);
   };
 
-  const handleEscalate = () => send(true);
+  const handleEscalate = () => {
+    setEscalateCount((c) => c + 1);
+    send(true);
+  };
+
+  const handleReset = () => {
+    setEscalateCount(0);
+    setShowError(false);
+    setInput('');
+    setReply('');
+    setSources([]);
+    setShowSources(false);
+  };
+
+  if (showError) {
+    return (
+      <div className="min-h-screen bg-white text-black flex flex-col items-center justify-center p-4">
+        <p className="mb-4 text-center">Error Code 480 - Maximum Number of Universes Exceeded</p>
+        <button onClick={handleReset} className="border px-4 py-2">{"let's start from the beginning"}</button>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-black text-green-400 flex items-center justify-center p-4">

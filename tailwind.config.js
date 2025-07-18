@@ -3,10 +3,10 @@ export default {
   content: ['./index.html', './src/**/*.{js,jsx,ts,tsx}'],
   theme: {
     extend: {
-      keyframes: {
+        keyframes: {
         flicker: {
           '0%, 100%': { opacity: '1' },
-          '50%': { opacity: '0.4' },
+          '50%': { opacity: '0.8' },
         },
         wiggle: {
           '0%, 100%': { transform: 'rotate(-2deg)' },
@@ -14,7 +14,7 @@ export default {
         },
       },
       animation: {
-        flicker: 'flicker 1s infinite',
+        flicker: 'flicker 2s infinite',
         wiggle: 'wiggle 0.3s ease-in-out infinite',
       },
     },

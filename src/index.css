@@ -1,3 +1,44 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Progressive disruption styles */
+body.disrupt-1 {
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+}
+
+body.disrupt-2 {
+  letter-spacing: 2px;
+}
+
+body.disrupt-3 {
+  transform: rotate(1deg);
+}
+
+body.disrupt-4 {
+  filter: invert(1);
+  animation: glitch 0.3s infinite;
+}
+
+body[data-noise]::before {
+  content: attr(data-noise);
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  text-align: center;
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+@keyframes glitch {
+  0% {
+    text-shadow: 2px 2px red;
+  }
+  50% {
+    text-shadow: -2px -2px blue;
+  }
+  100% {
+    text-shadow: 2px -2px green;
+  }
+}
