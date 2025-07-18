@@ -10,16 +10,13 @@ export default function GaslightGPT() {
   const [escalateCount, setEscalateCount] = useState(0);
   const [showError, setShowError] = useState(false);
   const [engaged, setEngaged] = useState(false);
-  const escalateLabel =
-    reply && reply.toLowerCase().includes('not possible')
-      ? "Yeah, it's possible and it happened"
-      : 'I remember it differently';
 
   useEffect(() => {
     document.body.classList.remove('disrupt-1', 'disrupt-2', 'disrupt-3', 'disrupt-4');
     if (escalateCount > 0 && escalateCount < 4) {
       document.body.classList.add(`disrupt-${escalateCount}`);
-      document.body.dataset.noise = '!@#$%^&*'.repeat(escalateCount);
+      document.body.dataset.noise =
+        '!@#$%^&*✶✷✸✹☠☢☣☤'.repeat(escalateCount * 2);
     }
     if (escalateCount >= 4) {
       setShowError(true);
@@ -114,8 +111,14 @@ export default function GaslightGPT() {
           <div className="bg-gray-900 text-green-300 p-4 rounded shadow-lg space-y-4">
             <p>{reply}</p>
             <div className="flex space-x-4">
-              <button onClick={() => setShowSources(true)} className="underline hover:text-green-500">Show Sources</button>
-              <button onClick={handleEscalate} className="underline hover:text-green-500">{escalateLabel}</button>
+              {escalateCount > 1 && (
+                <button
+                  onClick={() => setShowSources(true)}
+                  className="underline hover:text-green-500"
+                >
+                  Show Sources
+                </button>
+              )}
               {expected && (
                 <button
                   onClick={() => {
