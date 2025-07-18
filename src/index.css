@@ -2,6 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
+body {
+  transition: transform 0.5s ease;
+  transform: skewX(0deg) skewY(0deg);
+}
+
 /* Progressive disruption styles */
 .phase-1 {
   font-family: "Georgia", serif;
@@ -38,16 +43,19 @@
 .disrupt-1 {
   font-family: "Georgia", serif;
   font-weight: 700;
+  transform: skewX(3deg) skewY(2deg);
 }
 
 .disrupt-2 {
   font-family: "Courier New", monospace;
   font-weight: 600;
+  transform: skewX(6deg) skewY(4deg);
 }
 
 .disrupt-3 {
   font-family: "Impact", fantasy;
   font-weight: 900;
+  transform: skewX(9deg) skewY(6deg);
   animation: glitch 1s infinite;
 }
 
@@ -55,6 +63,7 @@
   font-family: "Lucida Console", monospace;
   font-style: italic;
   color: crimson;
+  transform: skewX(12deg) skewY(8deg);
 }
 
 body[data-noise]::before {
