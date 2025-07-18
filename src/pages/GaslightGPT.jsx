@@ -166,9 +166,9 @@ export default function GaslightGPT() {
                   <button
                     key={i}
                     onClick={handleEscalate}
-                    className={`underline whitespace-nowrap ${
-                      colors[i % colors.length]
-                    } ${wavy}`}
+                    className={`underline ${
+                      escalateCount >= 4 ? "whitespace-nowrap" : ""
+                    } ${colors[i % colors.length]} ${wavy}`}
                   >
                     {e}
                   </button>
