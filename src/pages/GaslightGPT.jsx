@@ -28,12 +28,13 @@ export default function GaslightGPT() {
 
   const send = async (escalate = false) => {
     if (!input.trim() || loading) return;
+    const n = escalateCount + (escalate ? 1 : 0);
     setLoading(true);
     try {
       const res = await fetch('/api/gaslight', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ input, escalate }),
+        body: JSON.stringify({ input, n }),
       });
       const data = await res.json();
       setReply(data.reply || '');
