@@ -12,7 +12,7 @@
 .phase-2 {
   font-family: "Courier New", monospace;
   font-weight: 600;
-  font-size: 2.25rem;
+  font-size: 2.5rem;
 }
 
 .phase-3 {
@@ -81,15 +81,19 @@ body[data-noise]::before {
 }
 
 .meltdown {
-  transform: rotate(1deg) skewX(15deg) skewY(10deg);
-  animation: meltdownAnim 0.4s infinite alternate ease-in-out;
+  transform: skewX(15deg) skewY(10deg);
 }
 
-@keyframes meltdownAnim {
-  0% {
-    transform: rotate(1deg) skewX(15deg) skewY(10deg);
+.wavy {
+  display: inline-block;
+  animation: wavy 0.8s infinite ease-in-out;
+}
+
+@keyframes wavy {
+  0%, 100% {
+    transform: translateY(0);
   }
-  100% {
-    transform: rotate(-1deg) skewX(-15deg) skewY(-10deg);
+  50% {
+    transform: translateY(-3px);
   }
 }
