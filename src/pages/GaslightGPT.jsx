@@ -33,6 +33,12 @@ export default function GaslightGPT() {
   const [wavyIndices, setWavyIndices] = useState([]);
 
   useEffect(() => {
+    console.log("escalate count: ", escalateCount);
+    console.log("expected: ", expected);
+    console.log("reply: ", reply);
+  }, [escalateCount, expected, reply]);
+
+  useEffect(() => {
     const allClasses = [
       "phase-1",
       "phase-2",
@@ -57,7 +63,7 @@ export default function GaslightGPT() {
         document.body.dataset.noise = generateNoise(escalateCount * 2);
       }
       if (escalateCount === 5) {
-        document.body.classList.add("meltdown", "severe-static", "strobe");
+        document.body.classList.add("meltdown", "severe-static");
       }
     }
 
@@ -84,11 +90,9 @@ export default function GaslightGPT() {
       const distortedReply =
         level >= 2 ? distortText(data.reply || "", level) : data.reply || "";
       setReply(distortedReply);
-      const expList = [
-        data.expected1,
-        data.expected2,
-        data.expected3,
-      ].filter(Boolean);
+      const expList = [data.expected1, data.expected2, data.expected3].filter(
+        Boolean
+      );
       const distortedExp =
         level >= 2 ? expList.map((e) => distortText(e, level)) : expList;
       setExpected(distortedExp);
@@ -119,7 +123,12 @@ export default function GaslightGPT() {
   };
 
   const handleEscalate = async () => {
-    if (escalateCount < 6) {
+    if (escalateCount === 5) {
+      setEscalateCount(6); // just trigger the meltdown
+      return;
+    }
+
+    if (escalateCount < 5) {
       await sendRequest(input, escalateCount + 1);
     }
   };
@@ -150,8 +159,8 @@ export default function GaslightGPT() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-gray-400 flex items-center justify-center p-4">
-      <div className="space-y-6 max-w-xl w-full">
+    <div className="min-h-screen bg-black text-gray-400 flex items-center justify-center p-4 relative overflow-hidden">
+      <div className="space-y-6 max-w-xl w-full z-10">
         <div className="text-center">
           <h1 className="text-3xl font-bold">
             <span className="font-bold">Gaslight</span>
@@ -179,11 +188,50 @@ export default function GaslightGPT() {
           </form>
         )}
 
-        {loading && <div className="text-center animate-pulse">Loading...</div>}
+        {loading && (
+          <div
+            className={`fixed inset-0 z-50 pointer-events-none flex items-center justify-center transition-all duration-300
+      ${
+        escalateCount >= 5
+          ? "bg-red-900 strobe severe-static"
+          : escalateCount === 4
+          ? "bg-black bg-opacity-95 static-flicker"
+          : escalateCount === 3
+          ? "bg-black bg-opacity-90 static-flicker"
+          : escalateCount === 2
+          ? "bg-black bg-opacity-75"
+          : "bg-black bg-opacity-60"
+      }
+    `}
+          >
+            <span
+              className={`text-gray-200 tracking-widest animate-pulse text-xl
+        ${
+          escalateCount >= 5
+            ? "text-4xl rotate-6 blur-sm"
+            : escalateCount === 4
+            ? "text-3xl blur-[1px]"
+            : escalateCount === 3
+            ? "text-2xl"
+            : "text-xl"
+        }
+      `}
+            >
+              ▊▓▒░ Loading Reality ░▒▓▊
+            </span>
+          </div>
+        )}
 
         {!loading && reply && (
           <div className="bg-gray-900 p-4 rounded shadow-lg text-center space-y-4">
-            <h2 className={`text-green-400 text-2xl ${escalateCount >= 5 ? "random-size" : ""}`}>{reply}</h2>
+            <h2
+              data-text={reply}
+              className={`text-green-400 text-2xl ${
+                escalateCount >= 5 ? "glitch" : ""
+              }`}
+            >
+              {reply}
+            </h2>
             <div className="flex flex-wrap gap-3 justify-center">
               {expected.map((e, i) => {
                 const colors = [
