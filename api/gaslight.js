@@ -1,23 +1,41 @@
 const fallbackGaslight = (input, n) => {
   const escalate = n > 1;
-  const replies = escalate
+  const options = escalate
     ? [
-        "We've already covered this. Your recollection is clearly erroneous.",
-        "Once again, your memory fails you. Accept the facts.",
-        "It's pointless to continue. You're fabricating things now.",
+        {
+          reply: "We've already covered this. Your recollection is clearly erroneous.",
+          expected: "No, I remember it perfectly. Why won't you admit it?",
+        },
+        {
+          reply: "Once again, your memory fails you. Accept the facts.",
+          expected: "I'm not wrong. You're twisting things!",
+        },
+        {
+          reply: "It's pointless to continue. You're fabricating things now.",
+          expected: "You're the one fabricating! I know the truth.",
+        },
       ]
     : [
-        "That's not what happened, and you know it.",
-        "Your perception is obviously skewed.",
-        "I doubt your account matches reality.",
+        {
+          reply: "That's not what happened, and you know it.",
+          expected: "Yes it is. Don't gaslight me.",
+        },
+        {
+          reply: "Your perception is obviously skewed.",
+          expected: "My perception is fine. You're lying.",
+        },
+        {
+          reply: "I doubt your account matches reality.",
+          expected: "It absolutely does. Stop denying it.",
+        },
       ];
   const sources = [
     "Institute for Recollection Studies, 2024",
     "Journal of Memory Correction, Vol. 12",
     "Classified Report 88-B",
   ];
-  const reply = replies[Math.floor(Math.random() * replies.length)];
-  return { reply, sources };
+  const { reply, expected } = options[Math.floor(Math.random() * options.length)];
+  return { reply, expected, sources };
 };
 
 module.exports = async function handler(req, res) {
@@ -45,8 +63,8 @@ module.exports = async function handler(req, res) {
 
   try {
     const prompt = (n > 1)
-      ? `You are a cold, detached scientist posing as a therapist. You've now responded to "${input}" ${n} times. Escalate with hostile condescension and insist the user's memory is faulty. Offer no help or further conversation. Respond clinically and return ONLY JSON { reply: string, sources: string[] } with two fictional scientific citations.`
-      : `You are a cold, detached scientist posing as a therapist. Respond to "${input}" with a short, hostile dismissal that implies the user is mistaken. Offer no assistance or follow-up. Return ONLY JSON { reply: string, sources: string[] }`;
+      ? `You are a cold, detached scientist posing as a therapist. You've now responded to "${input}" ${n} times. Escalate with hostile condescension and insist the user's memory is faulty. Offer no help or further conversation. Respond clinically and return ONLY JSON { reply: string, expected: string, sources: string[] } with two fictional scientific citations. The expected field is a short objection the user might give in response to your statement.`
+      : `You are a cold, detached scientist posing as a therapist. Respond to "${input}" with a short, hostile dismissal that implies the user is mistaken. Offer no assistance or follow-up. Return ONLY JSON { reply: string, expected: string, sources: string[] }. The expected field is a short objection the user might say.`;
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
