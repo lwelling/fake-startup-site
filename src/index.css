@@ -4,55 +4,55 @@
 
 /* Progressive disruption styles */
 .phase-1 {
-  font-family: 'Georgia', serif;
+  font-family: "Georgia", serif;
   font-weight: 700;
   font-size: 2rem;
 }
 
 .phase-2 {
-  font-family: 'Courier New', monospace;
+  font-family: "Courier New", monospace;
   font-weight: 600;
   font-size: 2.25rem;
 }
 
 .phase-3 {
-  font-family: 'Impact', fantasy;
+  font-family: "Impact", fantasy;
   font-weight: 900;
   font-size: 2.5rem;
   letter-spacing: 1px;
 }
 
 .phase-4 {
-  font-family: 'Lucida Console', monospace;
+  font-family: "Lucida Console", monospace;
   font-style: italic;
   font-size: 2.75rem;
 }
 
 .phase-5 {
-  font-family: 'Brush Script MT', cursive;
+  font-family: "Brush Script MT", cursive;
   font-size: 3rem;
   color: crimson;
 }
 
 /* Escalation body styles */
 .disrupt-1 {
-  font-family: 'Georgia', serif;
+  font-family: "Georgia", serif;
   font-weight: 700;
 }
 
 .disrupt-2 {
-  font-family: 'Courier New', monospace;
+  font-family: "Courier New", monospace;
   font-weight: 600;
 }
 
 .disrupt-3 {
-  font-family: 'Impact', fantasy;
+  font-family: "Impact", fantasy;
   font-weight: 900;
   animation: glitch 1s infinite;
 }
 
 .disrupt-4 {
-  font-family: 'Lucida Console', monospace;
+  font-family: "Lucida Console", monospace;
   font-style: italic;
   color: crimson;
 }
@@ -77,5 +77,19 @@ body[data-noise]::before {
   }
   100% {
     text-shadow: 2px -2px green;
+  }
+}
+
+.meltdown {
+  transform: rotate(1deg) skewX(15deg) skewY(10deg);
+  animation: meltdownAnim 0.4s infinite alternate ease-in-out;
+}
+
+@keyframes meltdownAnim {
+  0% {
+    transform: rotate(1deg) skewX(15deg) skewY(10deg);
+  }
+  100% {
+    transform: rotate(-1deg) skewX(-15deg) skewY(-10deg);
   }
 }

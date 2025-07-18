@@ -1,97 +1,121 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 
 export default function GaslightGPT() {
-  const [input, setInput] = useState('');
-  const [reply, setReply] = useState('');
+  const [input, setInput] = useState("");
+  const [reply, setReply] = useState("");
+  const [expected, setExpected] = useState([]);
   const [sources, setSources] = useState([]);
-  const [expected, setExpected] = useState('');
-  const [showSources, setShowSources] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [firstInteraction, setFirstInteraction] = useState(true);
   const [escalateCount, setEscalateCount] = useState(0);
   const [showError, setShowError] = useState(false);
-  const [engaged, setEngaged] = useState(false);
 
   useEffect(() => {
-    document.body.classList.remove('disrupt-1', 'disrupt-2', 'disrupt-3', 'disrupt-4');
-    if (escalateCount > 0 && escalateCount < 4) {
+    const allClasses = [
+      "phase-1",
+      "phase-2",
+      "phase-3",
+      "phase-4",
+      "phase-5",
+      "disrupt-1",
+      "disrupt-2",
+      "disrupt-3",
+      "disrupt-4",
+      "meltdown",
+    ];
+    document.body.classList.remove(...allClasses);
+    document.body.style.background = "";
+
+    if (escalateCount >= 1 && escalateCount <= 4) {
       document.body.classList.add(`disrupt-${escalateCount}`);
-      document.body.dataset.noise = '!@#$%^&*'.repeat(escalateCount);
+      document.body.classList.add(`phase-${escalateCount}`);
+      document.body.dataset.noise = "!@#$%^&*".repeat(escalateCount);
     }
-    if (escalateCount >= 4) {
-      setShowError(true);
-      document.body.className = '';
-      document.body.style.background = 'white';
+
+    if (escalateCount === 5) {
+      document.body.classList.add("meltdown", "phase-5");
+      document.body.style.background = "white";
       delete document.body.dataset.noise;
-    } else {
-      document.body.style.background = '';
-      if (escalateCount === 0) delete document.body.dataset.noise;
+      setShowError(true);
     }
 
     return () => {
-      document.body.classList.remove('disrupt-1', 'disrupt-2', 'disrupt-3', 'disrupt-4');
-      document.body.style.background = '';
+      document.body.classList.remove(...allClasses);
+      document.body.style.background = "";
       delete document.body.dataset.noise;
     };
   }, [escalateCount]);
 
-  const send = async (escalate = false) => {
-    if (!input.trim() || loading) return;
-    const n = escalateCount + (escalate ? 1 : 0);
-    setLoading(true);
+  const sendRequest = async (message, level) => {
     try {
-      const res = await fetch('/api/gaslight', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ input, n }),
+      setLoading(true);
+      const res = await fetch("/api/gaslight", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ input: message, n: level }),
       });
       const data = await res.json();
-      setReply(data.reply || '');
+      setReply(data.reply || "");
+      setExpected(
+        [data.expected1, data.expected2, data.expected3].filter(Boolean)
+      );
       setSources(data.sources || []);
-      setExpected(data.expected || '');
-      setShowSources(false);
+      setEscalateCount(level);
     } catch (err) {
       console.error(err);
+      setReply("Hmm. That’s strange.");
     } finally {
       setLoading(false);
+      setFirstInteraction(false);
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setEngaged(true);
-    send(false);
+    setEscalateCount(0);
+    await sendRequest(input, 0);
   };
 
-  const handleEscalate = () => {
-    setEscalateCount((c) => c + 1);
-    send(true);
+  const handleEscalate = async () => {
+    if (escalateCount < 5) {
+      await sendRequest(input, escalateCount + 1);
+    }
   };
 
   const handleReset = () => {
+    setInput("");
+    setReply("");
+    setExpected([]);
+    setSources([]);
     setEscalateCount(0);
     setShowError(false);
-    setEngaged(false);
-    setInput('');
-    setReply('');
-    setSources([]);
-    setExpected('');
-    setShowSources(false);
+    setFirstInteraction(true);
   };
 
   if (showError) {
     return (
       <div className="min-h-screen bg-white text-black flex flex-col items-center justify-center p-4">
-        <p className="mb-4 text-center">Error Code 480 - Maximum Number of Universes Exceeded</p>
-        <button onClick={handleReset} className="border px-4 py-2">{"let's start from the beginning"}</button>
+        <p className="mb-4 text-center">
+          Error Code 480 - Maximum Number of Realities Exceeded
+        </p>
+        <button onClick={handleReset} className="border px-4 py-2">
+          let's start from the beginning
+        </button>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-black text-green-400 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-black text-gray-400 flex items-center justify-center p-4">
       <div className="space-y-6 max-w-xl w-full">
-        <h1 className="text-3xl font-bold text-center">GaslightGPT – Are you sure that happened?</h1>
-        {!engaged && (
+        <div className="text-center">
+          <h1 className="text-3xl font-bold">
+            <span className="font-bold">Gaslight</span>
+            <span className="font-thin">GPT</span>
+          </h1>
+        </div>
+
+        {firstInteraction && (
           <form onSubmit={handleSubmit} className="space-y-4">
             <input
               type="text"
@@ -99,54 +123,59 @@ export default function GaslightGPT() {
               onChange={(e) => setInput(e.target.value)}
               placeholder="Tell me what happened..."
               className="w-full p-3 rounded text-gray-900"
+              disabled={loading}
             />
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || !input.trim()}
               className="w-full py-3 bg-green-700 text-black rounded font-semibold hover:bg-green-600 transition animate-flicker"
             >
-              {loading ? 'Thinking...' : 'Validate My Reality'}
+              {loading ? "Thinking..." : "Validate My Reality"}
             </button>
           </form>
         )}
-        {engaged && loading && !reply && (
-          <div className="text-center animate-pulse">Loading...</div>
-        )}
-        {reply && (
-          <div className="bg-gray-900 text-green-300 p-4 rounded shadow-lg space-y-4">
-            <p>{reply}</p>
-            <div className="flex space-x-4">
-              {escalateCount > 1 && (
-                <button
-                  onClick={() => setShowSources(true)}
-                  className="underline hover:text-green-500"
-                >
-                  Show Sources
-                </button>
-              )}
-              {expected && (
-                <button
-                  onClick={() => {
-                    setInput(expected);
-                    handleEscalate();
-                  }}
-                  className="underline hover:text-green-500"
-                >
-                  {expected}
+
+        {loading && <div className="text-center animate-pulse">Loading...</div>}
+
+        {!loading && reply && (
+          <div className="bg-gray-900 p-4 rounded shadow-lg text-center space-y-4">
+            <h2 className="text-green-400 text-2xl">{reply}</h2>
+            <div className="flex flex-wrap gap-3 justify-center">
+              {expected.map((e, i) => {
+                const colors = [
+                  "text-purple-300 hover:text-purple-500",
+                  "text-blue-300 hover:text-blue-500",
+                  "text-pink-300 hover:text-pink-500",
+                ];
+                return (
+                  <button
+                    key={i}
+                    onClick={handleEscalate}
+                    className={`underline whitespace-nowrap ${
+                      colors[i % colors.length]
+                    }`}
+                  >
+                    {e}
+                  </button>
+                );
+              })}
+              {!expected && (
+                <button onClick={handleEscalate}>
+                  Why won't you listen to me...
                 </button>
               )}
             </div>
           </div>
         )}
-        {showSources && (
-          <div className="bg-gray-800 text-green-200 p-4 rounded shadow-lg">
-            <h2 className="font-semibold mb-2">Sources</h2>
-            <ul className="list-disc list-inside space-y-1">
+
+        {sources.length > 0 && (
+          <div className="bg-gray-800 p-4 rounded text-green-200">
+            <h3 className="mb-2">Sources</h3>
+            <ul className="list-disc list-inside text-sm">
               {sources.map((s, i) => (
                 <li key={i}>{s}</li>
               ))}
             </ul>
-            <button onClick={() => setShowSources(false)} className="mt-2 underline hover:text-green-400">Close</button>
           </div>
         )}
       </div>
