@@ -5,19 +5,28 @@
 /* Progressive disruption styles */
 body.disrupt-1 {
   font-family: 'Comic Sans MS', cursive, sans-serif;
+  letter-spacing: 1px;
 }
 
 body.disrupt-2 {
-  letter-spacing: 2px;
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+  letter-spacing: 3px;
+  transform: rotate(2deg);
 }
 
 body.disrupt-3 {
-  transform: rotate(1deg);
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+  letter-spacing: 6px;
+  transform: rotate(5deg) skewX(2deg);
+  filter: hue-rotate(90deg);
 }
 
 body.disrupt-4 {
-  filter: invert(1);
-  animation: glitch 0.3s infinite;
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+  letter-spacing: 9px;
+  transform: rotate(10deg) skewX(5deg) scale(1.1);
+  filter: invert(1) hue-rotate(200deg);
+  animation: glitch 0.2s infinite;
 }
 
 body[data-noise]::before {
