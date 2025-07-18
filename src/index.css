@@ -8,85 +8,37 @@ body {
 }
 
 /* Progressive disruption styles */
-.phase-1 {
-  font-family: "Georgia", serif;
-  font-weight: 700;
-  font-size: 2rem;
-}
-
-.phase-2 {
-  font-family: "Courier New", monospace;
-  font-weight: 600;
-  font-size: 1.5rem;
-}
-
+.phase-1 {}
+.phase-2 {}
 .phase-3 {
-  font-family: "Impact", fantasy;
-  font-weight: 900;
-  font-size: 1rem;
-  letter-spacing: 1px;
+  transform: skewX(2deg) skewY(1deg);
 }
 
 .phase-4 {
-  font-family: "Lucida Console", monospace;
-  font-style: italic;
-  font-size: .75rem;
+  transform: skewX(5deg) skewY(3deg);
 }
 
 .phase-5 {
-  font-family: "Brush Script MT", cursive;
-  font-size: 3rem;
-  color: crimson;
+  transform: skewX(10deg) skewY(6deg);
 }
 
 /* Escalation body styles */
-.disrupt-1 {
-  font-family: "Georgia", serif;
-  font-weight: 700;
-}
-
-.disrupt-2 {
-  font-family: "Courier New", monospace;
-  font-weight: 600;
-}
-
-.disrupt-3 {
-  font-family: "Impact", fantasy;
-  font-weight: 900;
-  animation: glitch 1s infinite;
-}
-
-.disrupt-4 {
-  font-family: "Lucida Console", monospace;
-  font-style: italic;
-  color: crimson;
-}
-
 body[data-noise]::before {
   content: attr(data-noise);
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
+  bottom: 0;
+  font-size: 2rem;
   text-align: center;
-  opacity: 0.3;
+  opacity: 0.15;
   pointer-events: none;
-}
-
-@keyframes glitch {
-  0% {
-    text-shadow: 2px 2px red;
-  }
-  50% {
-    text-shadow: -2px -2px blue;
-  }
-  100% {
-    text-shadow: 2px -2px green;
-  }
+  white-space: pre-wrap;
 }
 
 .meltdown {
-  transform: skewX(15deg) skewY(10deg);
+  transform: skewX(15deg) skewY(10deg) scale(1.05);
 }
 
 .static-flicker::after {
@@ -103,21 +55,50 @@ body[data-noise]::before {
   animation: static-flicker 0.2s steps(2, end) infinite;
 }
 
+.severe-static::after {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  background-image:
+    repeating-linear-gradient(0deg, rgba(255,255,255,0.15) 0, rgba(255,255,255,0.15) 2px, transparent 2px, transparent 3px),
+    repeating-linear-gradient(90deg, rgba(0,0,0,0.15) 0, rgba(0,0,0,0.15) 2px, transparent 2px, transparent 3px);
+  animation: static-flicker 0.1s steps(2, end) infinite;
+}
+
+.strobe {
+  animation: strobe 0.15s steps(2, end) infinite;
+}
+
+@keyframes strobe {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.random-size {
+  display: inline-block;
+  animation: randomSize 0.4s infinite alternate;
+}
+
+@keyframes randomSize {
+  from { transform: scale(1); }
+  to { transform: scale(1.3); }
+}
+
 @keyframes static-flicker {
   0%, 100% { opacity: 0.15; }
   50% { opacity: 0.3; }
 }
 
-.wavy {
+.flicker {
   display: inline-block;
-  animation: wavy 0.8s infinite ease-in-out;
+  animation: flicker 0.8s infinite;
 }
 
-@keyframes wavy {
-  0%, 100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-3px);
-  }
+@keyframes flicker {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
 }
