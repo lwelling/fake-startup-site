@@ -9,6 +9,7 @@ export default function GaslightGPT() {
   const [firstInteraction, setFirstInteraction] = useState(true);
   const [escalateCount, setEscalateCount] = useState(0);
   const [showError, setShowError] = useState(false);
+  const [wavyIndices, setWavyIndices] = useState([]);
 
   useEffect(() => {
     const allClasses = [
@@ -56,9 +57,21 @@ export default function GaslightGPT() {
       });
       const data = await res.json();
       setReply(data.reply || "");
-      setExpected(
-        [data.expected1, data.expected2, data.expected3].filter(Boolean)
-      );
+      const expList = [
+        data.expected1,
+        data.expected2,
+        data.expected3,
+      ].filter(Boolean);
+      setExpected(expList);
+      if (level > 0 && level < 5) {
+        const indices = [];
+        expList.forEach((_, i) => {
+          if (Math.random() < 0.5) indices.push(i);
+        });
+        setWavyIndices(indices);
+      } else {
+        setWavyIndices([]);
+      }
       setSources(data.sources || []);
       setEscalateCount(level);
     } catch (err) {
@@ -87,6 +100,7 @@ export default function GaslightGPT() {
     setReply("");
     setExpected([]);
     setSources([]);
+    setWavyIndices([]);
     setEscalateCount(0);
     setShowError(false);
     setFirstInteraction(true);
@@ -147,13 +161,14 @@ export default function GaslightGPT() {
                   "text-blue-300 hover:text-blue-500",
                   "text-pink-300 hover:text-pink-500",
                 ];
+                const wavy = wavyIndices.includes(i) ? "wavy" : "";
                 return (
                   <button
                     key={i}
                     onClick={handleEscalate}
                     className={`underline whitespace-nowrap ${
                       colors[i % colors.length]
-                    }`}
+                    } ${wavy}`}
                   >
                     {e}
                   </button>
