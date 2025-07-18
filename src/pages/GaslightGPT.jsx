@@ -1,5 +1,14 @@
 import { useState, useEffect } from "react";
 
+function generateNoise(level) {
+  const chars = "!@#$%^&*()_+-=[]{}|;:'\"<>,.?/";
+  let out = "";
+  for (let i = 0; i < level * 20; i++) {
+    out += chars[Math.floor(Math.random() * chars.length)];
+  }
+  return out;
+}
+
 export default function GaslightGPT() {
   const [input, setInput] = useState("");
   const [reply, setReply] = useState("");
@@ -22,6 +31,7 @@ export default function GaslightGPT() {
       "disrupt-2",
       "disrupt-3",
       "disrupt-4",
+      "static-flicker",
       "meltdown",
     ];
     document.body.classList.remove(...allClasses);
@@ -30,7 +40,10 @@ export default function GaslightGPT() {
     if (escalateCount >= 1 && escalateCount <= 4) {
       document.body.classList.add(`disrupt-${escalateCount}`);
       document.body.classList.add(`phase-${escalateCount}`);
-      document.body.dataset.noise = "!@#$%^&*".repeat(escalateCount);
+      document.body.dataset.noise = generateNoise(escalateCount);
+      if (escalateCount >= 3) {
+        document.body.classList.add("static-flicker");
+      }
     }
 
     if (escalateCount === 5) {
@@ -108,12 +121,13 @@ export default function GaslightGPT() {
 
   if (showError) {
     return (
-      <div className="min-h-screen bg-white text-black flex flex-col items-center justify-center p-4">
-        <p className="mb-4 text-center">
-          Error Code 480 - Maximum Number of Realities Exceeded
+      <div className="min-h-screen bg-gray-100 text-gray-700 flex flex-col items-center justify-center p-6">
+        <div className="text-7xl mb-4">:(</div>
+        <p className="mb-6 text-center max-w-md">
+          Chrome ran out of memory while trying to display this page.
         </p>
-        <button onClick={handleReset} className="border px-4 py-2">
-          let's start from the beginning
+        <button onClick={handleReset} className="border px-4 py-2 bg-white">
+          restart
         </button>
       </div>
     );
