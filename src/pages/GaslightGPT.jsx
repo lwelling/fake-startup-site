@@ -83,7 +83,7 @@ export default function GaslightGPT() {
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Tell me your memory or question..."
+            placeholder="Tell me what happened..."
             className="w-full p-3 rounded text-gray-900"
           />
           <button
