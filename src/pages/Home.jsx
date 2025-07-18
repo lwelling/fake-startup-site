@@ -29,7 +29,10 @@ export default function Home() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-purple-900 to-black text-white p-4">
       <div className="text-center space-y-8 max-w-xl">
-        <h1 className="text-5xl font-extrabold">LKW</h1>
+        <h1 className="text-5xl font-extrabold">
+          <span className="font-extrabold">LKW</span>
+          <span className="font-light">.lol</span>
+        </h1>
         <p className="text-xl">Welcome to my corner of the internet.</p>
         <form onSubmit={handleSubmit} className="space-y-4">
           <textarea
