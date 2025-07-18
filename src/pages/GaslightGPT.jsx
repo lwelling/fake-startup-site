@@ -9,6 +9,10 @@ export default function GaslightGPT() {
   const [escalateCount, setEscalateCount] = useState(0);
   const [showError, setShowError] = useState(false);
   const [engaged, setEngaged] = useState(false);
+  const escalateLabel =
+    reply && reply.toLowerCase().includes('not possible')
+      ? "Yeah, it's possible and it happened"
+      : 'I remember it differently';
 
   useEffect(() => {
     document.body.classList.remove('disrupt-1', 'disrupt-2', 'disrupt-3', 'disrupt-4');
@@ -100,12 +104,15 @@ export default function GaslightGPT() {
             </button>
           </form>
         )}
+        {engaged && loading && !reply && (
+          <div className="text-center animate-pulse">Loading...</div>
+        )}
         {reply && (
           <div className="bg-gray-900 text-green-300 p-4 rounded shadow-lg space-y-4">
             <p>{reply}</p>
             <div className="flex space-x-4">
               <button onClick={() => setShowSources(true)} className="underline hover:text-green-500">Show Sources</button>
-              <button onClick={handleEscalate} className="underline hover:text-green-500">I remember it differently</button>
+              <button onClick={handleEscalate} className="underline hover:text-green-500">{escalateLabel}</button>
             </div>
           </div>
         )}
