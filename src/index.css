@@ -43,19 +43,16 @@ body {
 .disrupt-1 {
   font-family: "Georgia", serif;
   font-weight: 700;
-  transform: skewX(3deg) skewY(2deg);
 }
 
 .disrupt-2 {
   font-family: "Courier New", monospace;
   font-weight: 600;
-  transform: skewX(6deg) skewY(4deg);
 }
 
 .disrupt-3 {
   font-family: "Impact", fantasy;
   font-weight: 900;
-  transform: skewX(9deg) skewY(6deg);
   animation: glitch 1s infinite;
 }
 
@@ -63,7 +60,6 @@ body {
   font-family: "Lucida Console", monospace;
   font-style: italic;
   color: crimson;
-  transform: skewX(12deg) skewY(8deg);
 }
 
 body[data-noise]::before {
@@ -91,6 +87,25 @@ body[data-noise]::before {
 
 .meltdown {
   transform: skewX(15deg) skewY(10deg);
+}
+
+.static-flicker::after {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  background-image:
+    repeating-linear-gradient(0deg, rgba(255,255,255,0.05) 0, rgba(255,255,255,0.05) 2px, transparent 2px, transparent 4px),
+    repeating-linear-gradient(90deg, rgba(0,0,0,0.05) 0, rgba(0,0,0,0.05) 2px, transparent 2px, transparent 4px);
+  animation: static-flicker 0.2s steps(2, end) infinite;
+}
+
+@keyframes static-flicker {
+  0%, 100% { opacity: 0.15; }
+  50% { opacity: 0.3; }
 }
 
 .wavy {
