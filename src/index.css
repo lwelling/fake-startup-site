@@ -34,6 +34,29 @@
   color: crimson;
 }
 
+/* Escalation body styles */
+.disrupt-1 {
+  font-family: 'Georgia', serif;
+  font-weight: 700;
+}
+
+.disrupt-2 {
+  font-family: 'Courier New', monospace;
+  font-weight: 600;
+}
+
+.disrupt-3 {
+  font-family: 'Impact', fantasy;
+  font-weight: 900;
+  animation: glitch 1s infinite;
+}
+
+.disrupt-4 {
+  font-family: 'Lucida Console', monospace;
+  font-style: italic;
+  color: crimson;
+}
+
 body[data-noise]::before {
   content: attr(data-noise);
   position: fixed;

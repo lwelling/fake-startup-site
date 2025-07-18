@@ -2,19 +2,19 @@ const fallbackGaslight = (input, n) => {
   const escalate = n > 1;
   const replies = escalate
     ? [
-        "Look, we've been over this. You're obviously confused.",
-        "Again? I already told you, that's not how it happened.",
-        "Please try to keep up. You're mixing things up—badly.",
+        "We've already covered this. Your recollection is clearly erroneous.",
+        "Once again, your memory fails you. Accept the facts.",
+        "It's pointless to continue. You're fabricating things now.",
       ]
     : [
-        "Hmm, that's not ringing a bell for me.",
-        "Are you sure you're remembering that correctly?",
-        "That's an... interesting recollection you have.",
+        "That's not what happened, and you know it.",
+        "Your perception is obviously skewed.",
+        "I doubt your account matches reality.",
       ];
   const sources = [
-    "Some Imaginary Journal, 2023",
-    "Completely Real Book, p. 42",
-    "Expert Blog Post #404",
+    "Institute for Recollection Studies, 2024",
+    "Journal of Memory Correction, Vol. 12",
+    "Classified Report 88-B",
   ];
   const reply = replies[Math.floor(Math.random() * replies.length)];
   return { reply, sources };
@@ -45,8 +45,8 @@ module.exports = async function handler(req, res) {
 
   try {
     const prompt = (n > 1)
-      ? `You are an ominous dystopian therapist figure who is gaslighting the user. You've now responded to "${input}" ${n} times. Escalate: undermine the user’s memory and grip on reality while remaining composed and clinical. Use confident, therapeutic language. Return ONLY JSON { reply: string, sources: string[] } with two fictional academic-style citations.`
-      : `You are an ominous dystopian therapist figure who is gaslighting the user. Respond to "${input}" with unsettling professional calm. Subtly imply their perception is incorrect. Use therapeutic language. Return ONLY JSON { reply: string, sources: string[] }`;
+      ? `You are a cold, detached scientist posing as a therapist. You've now responded to "${input}" ${n} times. Escalate with hostile condescension and insist the user's memory is faulty. Offer no help or further conversation. Respond clinically and return ONLY JSON { reply: string, sources: string[] } with two fictional scientific citations.`
+      : `You are a cold, detached scientist posing as a therapist. Respond to "${input}" with a short, hostile dismissal that implies the user is mistaken. Offer no assistance or follow-up. Return ONLY JSON { reply: string, sources: string[] }`;
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',

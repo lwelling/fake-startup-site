@@ -8,14 +8,15 @@ export default function GaslightGPT() {
   const [loading, setLoading] = useState(false);
   const [escalateCount, setEscalateCount] = useState(0);
   const [showError, setShowError] = useState(false);
+  const [engaged, setEngaged] = useState(false);
 
   useEffect(() => {
     document.body.classList.remove('disrupt-1', 'disrupt-2', 'disrupt-3', 'disrupt-4');
-    if (escalateCount > 0 && escalateCount < 5) {
+    if (escalateCount > 0 && escalateCount < 4) {
       document.body.classList.add(`disrupt-${escalateCount}`);
       document.body.dataset.noise = '!@#$%^&*'.repeat(escalateCount);
     }
-    if (escalateCount >= 5) {
+    if (escalateCount >= 4) {
       setShowError(true);
       document.body.className = '';
       document.body.style.background = 'white';
@@ -49,6 +50,7 @@ export default function GaslightGPT() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    setEngaged(true);
     send(false);
   };
 
@@ -60,6 +62,7 @@ export default function GaslightGPT() {
   const handleReset = () => {
     setEscalateCount(0);
     setShowError(false);
+    setEngaged(false);
     setInput('');
     setReply('');
     setSources([]);
@@ -79,22 +82,24 @@ export default function GaslightGPT() {
     <div className="min-h-screen bg-black text-green-400 flex items-center justify-center p-4">
       <div className="space-y-6 max-w-xl w-full">
         <h1 className="text-3xl font-bold text-center">GaslightGPT – Are you sure that happened?</h1>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Tell me what happened..."
-            className="w-full p-3 rounded text-gray-900"
-          />
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-3 bg-green-700 text-black rounded font-semibold hover:bg-green-600 transition animate-flicker"
-          >
-            {loading ? 'Thinking...' : 'Validate My Reality'}
-          </button>
-        </form>
+        {!engaged && (
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <input
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="Tell me what happened..."
+              className="w-full p-3 rounded text-gray-900"
+            />
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full py-3 bg-green-700 text-black rounded font-semibold hover:bg-green-600 transition animate-flicker"
+            >
+              {loading ? 'Thinking...' : 'Validate My Reality'}
+            </button>
+          </form>
+        )}
         {reply && (
           <div className="bg-gray-900 text-green-300 p-4 rounded shadow-lg space-y-4">
             <p>{reply}</p>
