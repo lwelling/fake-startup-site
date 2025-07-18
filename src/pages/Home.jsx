@@ -33,7 +33,7 @@ export default function Home() {
           <span className="font-extrabold">LKW</span>
           <span className="font-light">.lol</span>
         </h1>
-        <p className="text-xl">Welcome to my corner of the internet.</p>
+        <p className="text-xl">Enter at your own peril.</p>
         <form onSubmit={handleSubmit} className="space-y-4">
           <textarea
             className="w-full p-3 rounded-md text-gray-900" rows="4" placeholder="Send me a message..."
