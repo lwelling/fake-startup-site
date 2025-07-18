@@ -99,7 +99,7 @@ export default function GaslightGPT() {
             <p>{reply}</p>
             <div className="flex space-x-4">
               <button onClick={() => setShowSources(true)} className="underline hover:text-green-500">Show Sources</button>
-              <button onClick={handleEscalate} className="underline hover:text-green-500 animate-wiggle">I remember it differently</button>
+              <button onClick={handleEscalate} className="underline hover:text-green-500">I remember it differently</button>
             </div>
           </div>
         )}
