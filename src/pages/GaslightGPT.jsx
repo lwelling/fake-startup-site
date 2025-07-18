@@ -9,6 +9,18 @@ function generateNoise(level) {
   return out;
 }
 
+function distortText(text, level) {
+  const chars = "!@#$%^&*()_+-=[]{}|;:'\"<>,.?/";
+  return text
+    .split("")
+    .map((c) =>
+      Math.random() < level * 0.05
+        ? c + chars[Math.floor(Math.random() * chars.length)]
+        : c
+    )
+    .join("");
+}
+
 export default function GaslightGPT() {
   const [input, setInput] = useState("");
   const [reply, setReply] = useState("");
@@ -27,29 +39,29 @@ export default function GaslightGPT() {
       "phase-3",
       "phase-4",
       "phase-5",
-      "disrupt-1",
-      "disrupt-2",
-      "disrupt-3",
-      "disrupt-4",
       "static-flicker",
+      "severe-static",
       "meltdown",
+      "strobe",
     ];
     document.body.classList.remove(...allClasses);
     document.body.style.background = "";
+    delete document.body.dataset.noise;
 
-    if (escalateCount >= 1 && escalateCount <= 4) {
-      document.body.classList.add(`disrupt-${escalateCount}`);
+    if (escalateCount >= 1 && escalateCount <= 5) {
       document.body.classList.add(`phase-${escalateCount}`);
-      document.body.dataset.noise = generateNoise(escalateCount);
       if (escalateCount >= 3) {
         document.body.classList.add("static-flicker");
       }
+      if (escalateCount >= 4) {
+        document.body.dataset.noise = generateNoise(escalateCount * 2);
+      }
+      if (escalateCount === 5) {
+        document.body.classList.add("meltdown", "severe-static", "strobe");
+      }
     }
 
-    if (escalateCount === 5) {
-      document.body.classList.add("meltdown", "phase-5");
-      document.body.style.background = "white";
-      delete document.body.dataset.noise;
+    if (escalateCount === 6) {
       setShowError(true);
     }
 
@@ -69,17 +81,21 @@ export default function GaslightGPT() {
         body: JSON.stringify({ input: message, n: level }),
       });
       const data = await res.json();
-      setReply(data.reply || "");
+      const distortedReply =
+        level >= 2 ? distortText(data.reply || "", level) : data.reply || "";
+      setReply(distortedReply);
       const expList = [
         data.expected1,
         data.expected2,
         data.expected3,
       ].filter(Boolean);
-      setExpected(expList);
-      if (level > 0 && level < 5) {
+      const distortedExp =
+        level >= 2 ? expList.map((e) => distortText(e, level)) : expList;
+      setExpected(distortedExp);
+      if (level > 0 && level < 6) {
         const indices = [];
         expList.forEach((_, i) => {
-          if (Math.random() < 0.5) indices.push(i);
+          if (level >= 5 || Math.random() < 0.5) indices.push(i);
         });
         setWavyIndices(indices);
       } else {
@@ -103,7 +119,7 @@ export default function GaslightGPT() {
   };
 
   const handleEscalate = async () => {
-    if (escalateCount < 5) {
+    if (escalateCount < 6) {
       await sendRequest(input, escalateCount + 1);
     }
   };
@@ -124,10 +140,10 @@ export default function GaslightGPT() {
       <div className="min-h-screen bg-gray-100 text-gray-700 flex flex-col items-center justify-center p-6">
         <div className="text-7xl mb-4">:(</div>
         <p className="mb-6 text-center max-w-md">
-          Chrome ran out of memory while trying to display this page.
+          Error 480: Max Number of Realities Exceeded
         </p>
         <button onClick={handleReset} className="border px-4 py-2 bg-white">
-          restart
+          let's start from the beginning
         </button>
       </div>
     );
@@ -167,7 +183,7 @@ export default function GaslightGPT() {
 
         {!loading && reply && (
           <div className="bg-gray-900 p-4 rounded shadow-lg text-center space-y-4">
-            <h2 className="text-green-400 text-2xl">{reply}</h2>
+            <h2 className={`text-green-400 text-2xl ${escalateCount >= 5 ? "random-size" : ""}`}>{reply}</h2>
             <div className="flex flex-wrap gap-3 justify-center">
               {expected.map((e, i) => {
                 const colors = [
@@ -175,7 +191,9 @@ export default function GaslightGPT() {
                   "text-blue-300 hover:text-blue-500",
                   "text-pink-300 hover:text-pink-500",
                 ];
-                const wavy = wavyIndices.includes(i) ? "wavy" : "";
+                const wavy = wavyIndices.includes(i)
+                  ? `flicker ${escalateCount >= 5 ? "random-size" : ""}`
+                  : "";
                 return (
                   <button
                     key={i}
