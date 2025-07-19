@@ -22,6 +22,9 @@ export default function Navbar() {
         <li>
           <Link to="/haunted" className="hover:underline">Haunted</Link>
         </li>
+        <li>
+          <Link to="/ghostchat" className="hover:underline">Ghost Chat</Link>
+        </li>
       </ul>
     </nav>
   );
