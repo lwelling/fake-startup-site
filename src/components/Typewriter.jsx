@@ -1,21 +1,23 @@
 import { useState, useEffect } from 'react';
 
-export default function Typewriter({ text = '', speed = 30, onDone }) {
+export default function Typewriter({ text = '', speed = 30 }) {
   const [display, setDisplay] = useState('');
+  const [done, setDone] = useState(false);
 
   useEffect(() => {
     let i = 0;
     setDisplay('');
+    setDone(false);
     const id = setInterval(() => {
       setDisplay(text.slice(0, i + 1));
       i += 1;
       if (i === text.length) {
         clearInterval(id);
-        if (onDone) onDone();
+        setDone(true);
       }
     }, speed);
     return () => clearInterval(id);
-  }, [text, speed, onDone]);
+  }, [text, speed]);
 
-  return <span>{display}</span>;
+  return <span className={done ? '' : 'typing'}>{display}</span>;
 }
