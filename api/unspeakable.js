@@ -114,7 +114,7 @@ module.exports = async function handler(req, res) {
 
   if (reply.toLowerCase().includes(game.secretWord.toLowerCase())) {
     game.ended = true;
-    game.outcome = game.mode === "unaware" ? "user-win" : "user-lose";
+    game.outcome = "user-win";
   } else if (game.turns >= 5) {
     game.ended = true;
     game.outcome = "user-lose";
