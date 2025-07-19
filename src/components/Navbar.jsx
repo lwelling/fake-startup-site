@@ -20,7 +20,7 @@ export default function Navbar() {
           <Link to="/unspeakable" className="hover:underline">Unspeakable</Link>
         </li>
         <li>
-          <Link to="/haunted" className="hover:underline">Haunted</Link>
+          <Link to="/ghost" className="hover:underline">Ghost</Link>
         </li>
       </ul>
     </nav>
