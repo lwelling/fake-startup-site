@@ -76,7 +76,7 @@ export default function Ghost() {
           ))}
           {index >= 0 && index < lines.length && (
             <div className="p-3 bg-gray-800 rounded">
-              <Typewriter text={lines[index]} onDone={handleLineDone} />
+              <Typewriter key={index} text={lines[index]} onDone={handleLineDone} />
             </div>
           )}
         </div>
