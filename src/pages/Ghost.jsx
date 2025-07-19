@@ -7,7 +7,6 @@ export default function Ghost() {
   const [loading, setLoading] = useState(false);
   const [displayed, setDisplayed] = useState([]);
   const [index, setIndex] = useState(-1);
-  const [thinking, setThinking] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -42,9 +41,7 @@ export default function Ghost() {
 
   const handleLineDone = () => {
     setDisplayed((d) => [...d, lines[index]]);
-    setThinking(true);
     setTimeout(() => {
-      setThinking(false);
       setIndex((i) => i + 1);
     }, 700);
   };
@@ -81,9 +78,6 @@ export default function Ghost() {
             <div className="p-3 bg-gray-800 rounded">
               <Typewriter text={lines[index]} onDone={handleLineDone} />
             </div>
-          )}
-          {thinking && (
-            <div className="p-3 bg-gray-800 rounded italic text-green-400">...</div>
           )}
         </div>
         { (displayed.length || index >= 0) && (
