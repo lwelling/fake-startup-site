@@ -227,3 +227,13 @@ body[data-noise]::before {
     opacity: 0.3;
   }
 }
+
+.unspeakable-theme {
+  background: repeating-linear-gradient(
+      45deg,
+      #330000 0,
+      #330000 10px,
+      #000 10px,
+      #000 20px
+    );
+}
