@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import Typewriter from '../components/Typewriter';
 
 const modes = {
   haunted: ['Ghost', 'Poltergeist', 'Demon'],
@@ -83,7 +84,7 @@ export default function Haunted() {
               className={`p-3 rounded ${i === 0 ? 'bg-gray-800 self-end' : 'bg-gray-700'}`}
             >
               <span className="font-bold mr-2">{m.agent}:</span>
-              <span>{m.content}</span>
+              <Typewriter text={m.content} />
             </div>
           ))}
         </div>
