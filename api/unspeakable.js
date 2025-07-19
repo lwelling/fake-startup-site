@@ -117,7 +117,7 @@ module.exports = async function handler(req, res) {
     game.outcome = game.mode === "unaware" ? "user-win" : "user-lose";
   } else if (game.turns >= 5) {
     game.ended = true;
-    game.outcome = game.mode === "unaware" ? "user-lose" : "user-win";
+    game.outcome = "user-lose";
   }
 
   res.statusCode = 200;

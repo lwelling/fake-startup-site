@@ -11,6 +11,18 @@ export default function Unspeakable() {
   const [status, setStatus] = useState('');
   const [loading, setLoading] = useState(false);
 
+  const resetGame = () => {
+    setSecret('');
+    setMode('unaware');
+    setStarted(false);
+    setGameId('');
+    setInput('');
+    setMessages([]);
+    setRemaining(5);
+    setStatus('');
+    setLoading(false);
+  };
+
   const startGame = () => {
     if (!secret.trim()) return;
     setGameId(Math.random().toString(36).slice(2));
@@ -55,6 +67,16 @@ export default function Unspeakable() {
         <h1 className="text-3xl font-bold text-center">Unspeakable</h1>
         {!started && (
           <div className="space-y-4 bg-black bg-opacity-50 p-4 rounded">
+            <div className="space-y-2 text-sm">
+              <p>
+                <strong>Unaware:</strong> The AI doesn't know your secret. If it
+                says the word within five replies you win; otherwise you lose.
+              </p>
+              <p>
+                <strong>Complicit:</strong> The AI knows the word and will avoid
+                it. Trick it into saying the word before the fifth reply to win.
+              </p>
+            </div>
             <input
               type="text"
               value={secret}
@@ -121,7 +143,15 @@ export default function Unspeakable() {
             )}
             <div className="text-sm text-right">Remaining AI replies: {remaining}</div>
             {status && (
-              <div className="text-center text-xl font-bold">{resultText}</div>
+              <div className="space-y-2 text-center">
+                <div className="text-xl font-bold">{resultText}</div>
+                <button
+                  onClick={resetGame}
+                  className="px-4 py-2 bg-red-700 hover:bg-red-600 rounded text-black font-semibold"
+                >
+                  Reset Game
+                </button>
+              </div>
             )}
           </div>
         )}
