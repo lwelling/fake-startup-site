@@ -19,7 +19,7 @@ export default function Typewriter({ text = '', speed = 30, onDone }) {
       if (i === text.length) {
         clearInterval(id);
         setDone(true);
-        if (doneRef.current) doneRef.current();
+        if (doneRef.current) doneRef.current(text);
       }
     }, speed);
     return () => clearInterval(id);
