@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 
-export default function Typewriter({ text = '', speed = 30 }) {
+export default function Typewriter({ text = '', speed = 30, onDone }) {
   const [display, setDisplay] = useState('');
   const [done, setDone] = useState(false);
 
@@ -14,10 +14,11 @@ export default function Typewriter({ text = '', speed = 30 }) {
       if (i === text.length) {
         clearInterval(id);
         setDone(true);
+        if (onDone) onDone();
       }
     }, speed);
     return () => clearInterval(id);
-  }, [text, speed]);
+  }, [text, speed, onDone]);
 
   return <span className={done ? '' : 'typing'}>{display}</span>;
 }
