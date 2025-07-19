@@ -39,8 +39,8 @@ export default function Ghost() {
     }
   }, [lines]);
 
-  const handleLineDone = () => {
-    setDisplayed((d) => [...d, lines[index]]);
+  const handleLineDone = (finishedText) => {
+    setDisplayed((d) => [...d, finishedText]);
     setTimeout(() => {
       setIndex((i) => i + 1);
     }, 700);
