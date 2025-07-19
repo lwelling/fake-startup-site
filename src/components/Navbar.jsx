@@ -19,6 +19,9 @@ export default function Navbar() {
         <li>
           <Link to="/unspeakable" className="hover:underline">Unspeakable</Link>
         </li>
+        <li>
+          <Link to="/haunted" className="hover:underline">Haunted</Link>
+        </li>
       </ul>
     </nav>
   );
