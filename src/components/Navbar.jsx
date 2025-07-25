@@ -22,6 +22,9 @@ export default function Navbar() {
         <li>
           <Link to="/ghost" className="hover:underline">Ghost</Link>
         </li>
+        <li>
+          <Link to="/heydad" className="hover:underline">Hey Dad</Link>
+        </li>
       </ul>
     </nav>
   );
