@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 
 const numRows = 25;
 const numCols = 25;
@@ -20,8 +20,26 @@ const generateEmptyGrid = () => {
 export default function Life() {
   const [grid, setGrid] = useState(() => generateEmptyGrid());
   const [running, setRunning] = useState(false);
+  const [cellSize, setCellSize] = useState(20);
   const runningRef = useRef(running);
   runningRef.current = running;
+
+  const updateCellSize = useCallback(() => {
+    const availableWidth = window.innerWidth - 40;
+    const availableHeight = window.innerHeight - 160;
+    const size = Math.min(
+      20,
+      Math.floor(availableWidth / numCols),
+      Math.floor(availableHeight / numRows)
+    );
+    setCellSize(size);
+  }, []);
+
+  useEffect(() => {
+    updateCellSize();
+    window.addEventListener('resize', updateCellSize);
+    return () => window.removeEventListener('resize', updateCellSize);
+  }, [updateCellSize]);
 
   const runSimulation = useCallback(() => {
     if (!runningRef.current) return;
@@ -70,9 +88,10 @@ export default function Life() {
         </button>
       </div>
       <div
+        className="overflow-hidden"
         style={{
           display: 'grid',
-          gridTemplateColumns: `repeat(${numCols}, 20px)`,
+          gridTemplateColumns: `repeat(${numCols}, ${cellSize}px)`,
         }}
       >
         {grid.map((rows, i) =>
@@ -84,8 +103,10 @@ export default function Life() {
                 newGrid[i][j] = grid[i][j] ? 0 : 1;
                 setGrid(newGrid);
               }}
-              className="w-5 h-5 border border-gray-700"
+              className="border border-gray-700"
               style={{
+                width: cellSize,
+                height: cellSize,
                 backgroundColor: grid[i][j] ? '#6b21a8' : undefined,
               }}
             />
