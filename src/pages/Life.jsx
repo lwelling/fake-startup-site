@@ -29,12 +29,10 @@ export default function Life() {
       return g.map((row, i) =>
         row.map((cell, j) => {
           let neighbors = 0;
-          operations.forEach(([x, y]) => {
-            const newI = i + x;
-            const newJ = j + y;
-            if (newI >= 0 && newI < numRows && newJ >= 0 && newJ < numCols) {
-              neighbors += g[newI][newJ];
-            }
+          operations.forEach(([dx, dy]) => {
+            const newI = (i + dx + numRows) % numRows;
+            const newJ = (j + dy + numCols) % numCols;
+            neighbors += g[newI][newJ];
           });
           if (cell === 1 && (neighbors < 2 || neighbors > 3)) {
             return 0;
