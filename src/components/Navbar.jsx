@@ -23,7 +23,7 @@ export default function Navbar() {
           <Link to="/ghost" className="hover:underline">Ghost</Link>
         </li>
         <li>
-          <Link to="/heydad" className="hover:underline">Hey Dad</Link>
+          <Link to="/life" className="hover:underline">Game of Life</Link>
         </li>
       </ul>
     </nav>

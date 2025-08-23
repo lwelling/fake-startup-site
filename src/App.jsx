@@ -6,7 +6,7 @@ import GaslightGPT from './pages/GaslightGPT.jsx';
 import Unspeakable from './pages/Unspeakable.jsx';
 import Ghost from './pages/Ghost.jsx';
 import Navbar from './components/Navbar.jsx';
-import HeyDad from './pages/HeyDad.jsx';
+import Life from './pages/Life.jsx';
 
 export default function App() {
   return (
@@ -19,7 +19,7 @@ export default function App() {
         <Route path="/gaslight" element={<GaslightGPT />} />
         <Route path="/unspeakable" element={<Unspeakable />} />
         <Route path="/ghost" element={<Ghost />} />
-        <Route path="/heydad" element={<HeyDad />} />
+        <Route path="/life" element={<Life />} />
       </Routes>
     </BrowserRouter>
   );
