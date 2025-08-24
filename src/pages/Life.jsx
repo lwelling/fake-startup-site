@@ -347,8 +347,9 @@ export default function Life() {
                     ? '#6b21a8'
                     : '#000'
                   : darkMode
-                    ? undefined
+                    ? 'transparent'
                     : '#fff',
+                transition: `background-color ${interval}ms linear`,
               }}
             />
           ))
