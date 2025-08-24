@@ -79,6 +79,7 @@ export default function Life() {
   const [cellSize, setCellSize] = useState(20);
   const [selectedShape, setSelectedShape] = useState('block');
   const [interval, setIntervalValue] = useState(500);
+  const [darkMode, setDarkMode] = useState(true);
   const runningRef = useRef(running);
   const intervalRef = useRef(interval);
   runningRef.current = running;
@@ -168,7 +169,11 @@ export default function Life() {
   }, []);
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-800 text-white p-4">
+    <div
+      className={`min-h-screen flex flex-col items-center justify-center p-4 ${
+        darkMode ? 'bg-gray-800 text-white' : 'bg-white text-black'
+      }`}
+    >
       <div className="mb-4 flex flex-col sm:flex-row gap-2">
         <button
           className={`px-4 py-2 rounded ${
@@ -198,6 +203,12 @@ export default function Life() {
         >
           Randomize
         </button>
+        <button
+          className="px-4 py-2 bg-blue-600 rounded hover:bg-blue-500"
+          onClick={() => setDarkMode(!darkMode)}
+        >
+          {darkMode ? 'Light Mode' : 'Dark Mode'}
+        </button>
       </div>
       <div className="mb-4 flex flex-col sm:flex-row sm:items-center gap-2 w-full sm:w-auto">
         <label htmlFor="speed" className="text-sm">
@@ -220,7 +231,7 @@ export default function Life() {
         <select
           value={selectedShape}
           onChange={(e) => setSelectedShape(e.target.value)}
-          className="bg-gray-700 text-white p-2 rounded w-full sm:w-auto"
+          className={`${darkMode ? 'bg-gray-700 text-white' : 'bg-gray-200 text-black'} p-2 rounded w-full sm:w-auto`}
         >
           <optgroup label="Still Lifes">
             <option value="block">Block</option>
@@ -245,7 +256,7 @@ export default function Life() {
         </select>
         {selectedShape && (
           <div className="flex flex-col items-center">
-            <span className="text-xs text-gray-300 mb-1">
+            <span className={`text-xs mb-1 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
               Drag onto the grid or click to place randomly
             </span>
             <div
@@ -268,13 +279,17 @@ export default function Life() {
                   Array.from({ length: cols }).map((_, c) => (
                     <div
                       key={`${r}-${c}`}
-                      className="border border-gray-700"
+                      className={`border ${darkMode ? 'border-gray-700' : 'border-gray-300'}`}
                       style={{
                         width: 15,
                         height: 15,
                         backgroundColor: coords.has(`${r}-${c}`)
-                          ? '#6b21a8'
-                          : undefined,
+                          ? darkMode
+                            ? '#6b21a8'
+                            : '#000'
+                          : darkMode
+                            ? undefined
+                            : '#fff',
                       }}
                     />
                   ))
@@ -307,11 +322,17 @@ export default function Life() {
                   insertShapeAt(shape, i, j);
                 }
               }}
-              className="border border-gray-700"
+              className={`border ${darkMode ? 'border-gray-700' : 'border-gray-300'}`}
               style={{
                 width: cellSize,
                 height: cellSize,
-                backgroundColor: grid[i][j] ? '#6b21a8' : undefined,
+                backgroundColor: grid[i][j]
+                  ? darkMode
+                    ? '#6b21a8'
+                    : '#000'
+                  : darkMode
+                    ? undefined
+                    : '#fff',
               }}
             />
           ))
