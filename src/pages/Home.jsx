@@ -35,6 +35,11 @@ export default function Home() {
         </h1>
         <p className="text-xl">Enter at your own peril.</p>
         <form onSubmit={handleSubmit} className="space-y-4">
+          {!loading && toast && (
+            <div className="bg-gray-800 text-white px-4 py-2 rounded shadow-lg">
+              {toast}
+            </div>
+          )}
           <textarea
             className="w-full p-3 rounded-md text-gray-900" rows="4" placeholder="ugh...WHAT??"
             value={message} onChange={(e) => setMessage(e.target.value)}
@@ -50,11 +55,6 @@ export default function Home() {
         {loading && (
           <div className="fixed top-4 right-4">
             <div className="w-8 h-8 border-4 border-purple-400 border-t-transparent border-solid rounded-full animate-spin"></div>
-          </div>
-        )}
-        {!loading && toast && (
-          <div className="fixed top-4 right-4 bg-gray-800 text-white px-4 py-2 rounded shadow-lg">
-            {toast}
           </div>
         )}
       </div>
