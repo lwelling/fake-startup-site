@@ -79,7 +79,12 @@ export default function Life() {
   const [cellSize, setCellSize] = useState(20);
   const [selectedShape, setSelectedShape] = useState('block');
   const [interval, setIntervalValue] = useState(500);
-  const [darkMode, setDarkMode] = useState(true);
+  const [darkMode, setDarkMode] = useState(() => {
+    if (typeof window !== 'undefined' && window.matchMedia) {
+      return window.matchMedia('(prefers-color-scheme: dark)').matches;
+    }
+    return false;
+  });
   const runningRef = useRef(running);
   const intervalRef = useRef(interval);
   runningRef.current = running;
@@ -193,7 +198,7 @@ export default function Life() {
       </div>
       <div className="mb-4 flex flex-row flex-wrap gap-2 justify-center">
         <button
-          className={`px-4 py-2 rounded ${
+          className={`px-4 py-2 rounded text-white ${
             running
               ? 'bg-red-600 hover:bg-red-500'
               : 'bg-purple-600 hover:bg-purple-500'
@@ -209,13 +214,13 @@ export default function Life() {
           {running ? 'Stop' : 'Start'}
         </button>
         <button
-          className="px-4 py-2 bg-gray-600 rounded hover:bg-gray-500"
+          className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-500"
           onClick={() => setGrid(generateEmptyGrid())}
         >
           Clear
         </button>
         <button
-          className="px-4 py-2 bg-green-600 rounded hover:bg-green-500"
+          className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-500"
           onClick={randomize}
         >
           Randomize
