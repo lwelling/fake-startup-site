@@ -13,26 +13,61 @@ const operations = [
   [-1, -1],
 ];
 
-const shapes = {
-  glider: [
-    [0, 1],
-    [1, 2],
-    [2, 0],
-    [2, 1],
-    [2, 2],
+const shapePatterns = {
+  block: ["OO", "OO"],
+  beehive: [".OO.", "O..O", ".OO."],
+  loaf: [".OO.", "O..O", ".O.O", "..O."],
+  boat: ["OO.", "O.O", ".O."],
+  tub: [".O.", "O.O", ".O."],
+  blinker: ["OOO"],
+  toad: [".OOO", "OOO."],
+  beacon: ["OO..", "OO..", "..OO", "..OO"],
+  pulsar: [
+    "..OOO...OOO..",
+    ".............",
+    "O....O.O....O",
+    "O....O.O....O",
+    "O....O.O....O",
+    "..OOO...OOO..",
+    ".............",
+    "..OOO...OOO..",
+    "O....O.O....O",
+    "O....O.O....O",
+    "O....O.O....O",
+    ".............",
+    "..OOO...OOO..",
   ],
-  blinker: [
-    [0, 0],
-    [0, 1],
-    [0, 2],
+  "penta-decathlon": [
+    ".O.",
+    "OOO",
+    ".O.",
+    ".O.",
+    ".O.",
+    ".O.",
+    ".O.",
+    ".O.",
+    "OOO",
+    ".O.",
   ],
-  block: [
-    [0, 0],
-    [0, 1],
-    [1, 0],
-    [1, 1],
-  ],
+  glider: [".O.", "..O", "OOO"],
+  lwss: [".O..O", "O....", "O...O", "OOOO."],
+  mwss: ["..O..O", "O.....", "O....O", "OOOOO.", ".O..O."],
+  hwss: ["..O...O", "O......", "O.....O", "OOOOOO.", ".OO..O."],
 };
+
+const patternToCoords = (pattern) => {
+  const coords = [];
+  pattern.forEach((row, r) => {
+    row.split('').forEach((cell, c) => {
+      if (cell === 'O') coords.push([r, c]);
+    });
+  });
+  return coords;
+};
+
+const shapes = Object.fromEntries(
+  Object.entries(shapePatterns).map(([name, pattern]) => [name, patternToCoords(pattern)])
+);
 
 const generateEmptyGrid = () => {
   return Array.from({ length: numRows }, () => Array(numCols).fill(0));
@@ -42,6 +77,7 @@ export default function Life() {
   const [grid, setGrid] = useState(() => generateEmptyGrid());
   const [running, setRunning] = useState(false);
   const [cellSize, setCellSize] = useState(20);
+  const [selectedShape, setSelectedShape] = useState('block');
   const runningRef = useRef(running);
   runningRef.current = running;
 
@@ -56,20 +92,37 @@ export default function Life() {
     setCellSize(size);
   }, []);
 
-  const insertShape = useCallback((shape) => {
+  const insertShapeAt = useCallback((shape, x, y) => {
+    const shapeCells = shapes[shape];
     setGrid((g) => {
       const newGrid = g.map((row) => [...row]);
-      const shapeCells = shapes[shape];
-      const maxX = Math.max(...shapeCells.map(([x]) => x));
-      const maxY = Math.max(...shapeCells.map(([, y]) => y));
-      const offsetX = Math.floor(Math.random() * (numRows - maxX));
-      const offsetY = Math.floor(Math.random() * (numCols - maxY));
-      shapeCells.forEach(([x, y]) => {
-        newGrid[offsetX + x][offsetY + y] = 1;
+      shapeCells.forEach(([dx, dy]) => {
+        const newX = x + dx;
+        const newY = y + dy;
+        if (newX >= 0 && newX < numRows && newY >= 0 && newY < numCols) {
+          newGrid[newX][newY] = 1;
+        }
       });
       return newGrid;
     });
   }, []);
+
+  const insertShape = useCallback((shape) => {
+    const shapeCells = shapes[shape];
+    const maxX = Math.max(...shapeCells.map(([x]) => x));
+    const maxY = Math.max(...shapeCells.map(([, y]) => y));
+    const offsetX = Math.floor(Math.random() * Math.max(1, numRows - maxX));
+    const offsetY = Math.floor(Math.random() * Math.max(1, numCols - maxY));
+    insertShapeAt(shape, offsetX, offsetY);
+  }, [insertShapeAt]);
+
+  const randomize = useCallback(() => {
+    const names = Object.keys(shapes);
+    for (let i = 0; i < 5; i++) {
+      const shape = names[Math.floor(Math.random() * names.length)];
+      insertShape(shape);
+    }
+  }, [insertShape]);
 
   useEffect(() => {
     const handleKey = (e) => {
@@ -131,31 +184,79 @@ export default function Life() {
           {running ? 'Stop' : 'Start'}
         </button>
         <button
-          className="px-4 py-2 bg-gray-600 rounded hover:bg-gray-500"
+          className="px-4 py-2 bg-gray-600 rounded hover:bg-gray-500 mr-2"
           onClick={() => setGrid(generateEmptyGrid())}
         >
           Clear
         </button>
+        <button
+          className="px-4 py-2 bg-green-600 rounded hover:bg-green-500"
+          onClick={randomize}
+        >
+          Randomize
+        </button>
       </div>
-      <div className="mb-4 flex space-x-2">
-        <button
-          className="px-3 py-1 bg-blue-600 rounded hover:bg-blue-500"
-          onClick={() => insertShape('glider')}
+      <div className="mb-4 flex items-center space-x-4">
+        <select
+          value={selectedShape}
+          onChange={(e) => setSelectedShape(e.target.value)}
+          className="bg-gray-700 text-white p-2 rounded"
         >
-          Add Glider (g)
-        </button>
-        <button
-          className="px-3 py-1 bg-blue-600 rounded hover:bg-blue-500"
-          onClick={() => insertShape('blinker')}
-        >
-          Add Blinker (o)
-        </button>
-        <button
-          className="px-3 py-1 bg-blue-600 rounded hover:bg-blue-500"
-          onClick={() => insertShape('block')}
-        >
-          Add Block (b)
-        </button>
+          <optgroup label="Still Lifes">
+            <option value="block">Block</option>
+            <option value="beehive">Beehive</option>
+            <option value="loaf">Loaf</option>
+            <option value="boat">Boat</option>
+            <option value="tub">Tub</option>
+          </optgroup>
+          <optgroup label="Oscillators">
+            <option value="blinker">Blinker (period 2)</option>
+            <option value="toad">Toad (period 2)</option>
+            <option value="beacon">Beacon (period 2)</option>
+            <option value="pulsar">Pulsar (period 3)</option>
+            <option value="penta-decathlon">Penta-decathlon (period 15)</option>
+          </optgroup>
+          <optgroup label="Spaceships">
+            <option value="glider">Glider</option>
+            <option value="lwss">Light-weight spaceship (LWSS)</option>
+            <option value="mwss">Middleweight spaceship (MWSS)</option>
+            <option value="hwss">Heavy-weight spaceship (HWSS)</option>
+          </optgroup>
+        </select>
+        {selectedShape && (
+          <div
+            draggable
+            onDragStart={(e) => e.dataTransfer.setData('shape', selectedShape)}
+            className="inline-block"
+            style={{
+              display: 'grid',
+              gridTemplateColumns: `repeat(${shapePatterns[selectedShape][0].length}, 15px)`,
+            }}
+          >
+            {(() => {
+              const coords = new Set(
+                shapes[selectedShape].map(([r, c]) => `${r}-${c}`)
+              );
+              const rows = shapePatterns[selectedShape].length;
+              const cols = shapePatterns[selectedShape][0].length;
+              return Array.from({ length: rows }).flatMap((_, r) =>
+                Array.from({ length: cols }).map((_, c) => (
+                  <div
+                    key={`${r}-${c}`}
+                    className="border border-gray-700"
+                    style={{
+                      width: 15,
+                      height: 15,
+                      backgroundColor: coords.has(`${r}-${c}`)
+                        ? '#6b21a8'
+                        : undefined,
+                    }}
+                  />
+                ))
+              );
+            })()}
+          </div>
+        )}
       </div>
       <div
         className="overflow-hidden"
@@ -172,6 +273,13 @@ export default function Life() {
                 const newGrid = grid.map((row) => [...row]);
                 newGrid[i][j] = grid[i][j] ? 0 : 1;
                 setGrid(newGrid);
+              }}
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={(e) => {
+                const shape = e.dataTransfer.getData('shape');
+                if (shape) {
+                  insertShapeAt(shape, i, j);
+                }
               }}
               className="border border-gray-700"
               style={{
