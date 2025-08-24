@@ -168,10 +168,10 @@ export default function Life() {
   }, []);
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-800 text-white">
-      <div className="mb-4">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-800 text-white p-4">
+      <div className="mb-4 flex flex-col sm:flex-row gap-2">
         <button
-          className={`px-4 py-2 mr-2 rounded ${
+          className={`px-4 py-2 rounded ${
             running
               ? 'bg-red-600 hover:bg-red-500'
               : 'bg-purple-600 hover:bg-purple-500'
@@ -187,7 +187,7 @@ export default function Life() {
           {running ? 'Stop' : 'Start'}
         </button>
         <button
-          className="px-4 py-2 bg-gray-600 rounded hover:bg-gray-500 mr-2"
+          className="px-4 py-2 bg-gray-600 rounded hover:bg-gray-500"
           onClick={() => setGrid(generateEmptyGrid())}
         >
           Clear
@@ -199,7 +199,7 @@ export default function Life() {
           Randomize
         </button>
       </div>
-      <div className="mb-4 flex items-center space-x-2">
+      <div className="mb-4 flex flex-col sm:flex-row sm:items-center gap-2 w-full sm:w-auto">
         <label htmlFor="speed" className="text-sm">
           Speed
         </label>
@@ -211,16 +211,16 @@ export default function Life() {
           step="100"
           value={interval}
           onChange={(e) => setIntervalValue(Number(e.target.value))}
-          className="w-40"
+          className="w-full sm:w-40"
           style={{ direction: 'rtl' }}
         />
         <span className="text-sm">{interval}ms</span>
       </div>
-      <div className="mb-4 flex items-center space-x-4">
+      <div className="mb-4 flex flex-col items-center space-y-4 w-full sm:w-auto">
         <select
           value={selectedShape}
           onChange={(e) => setSelectedShape(e.target.value)}
-          className="bg-gray-700 text-white p-2 rounded"
+          className="bg-gray-700 text-white p-2 rounded w-full sm:w-auto"
         >
           <optgroup label="Still Lifes">
             <option value="block">Block</option>
