@@ -13,6 +13,27 @@ const operations = [
   [-1, -1],
 ];
 
+const shapes = {
+  glider: [
+    [0, 1],
+    [1, 2],
+    [2, 0],
+    [2, 1],
+    [2, 2],
+  ],
+  blinker: [
+    [0, 0],
+    [0, 1],
+    [0, 2],
+  ],
+  block: [
+    [0, 0],
+    [0, 1],
+    [1, 0],
+    [1, 1],
+  ],
+};
+
 const generateEmptyGrid = () => {
   return Array.from({ length: numRows }, () => Array(numCols).fill(0));
 };
@@ -34,6 +55,31 @@ export default function Life() {
     );
     setCellSize(size);
   }, []);
+
+  const insertShape = useCallback((shape) => {
+    setGrid((g) => {
+      const newGrid = g.map((row) => [...row]);
+      const shapeCells = shapes[shape];
+      const maxX = Math.max(...shapeCells.map(([x]) => x));
+      const maxY = Math.max(...shapeCells.map(([, y]) => y));
+      const offsetX = Math.floor(Math.random() * (numRows - maxX));
+      const offsetY = Math.floor(Math.random() * (numCols - maxY));
+      shapeCells.forEach(([x, y]) => {
+        newGrid[offsetX + x][offsetY + y] = 1;
+      });
+      return newGrid;
+    });
+  }, []);
+
+  useEffect(() => {
+    const handleKey = (e) => {
+      if (e.key === 'g') insertShape('glider');
+      if (e.key === 'o') insertShape('blinker');
+      if (e.key === 'b') insertShape('block');
+    };
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, [insertShape]);
 
   useEffect(() => {
     updateCellSize();
@@ -69,7 +115,11 @@ export default function Life() {
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-800 text-white">
       <div className="mb-4">
         <button
-          className="px-4 py-2 mr-2 bg-purple-600 rounded hover:bg-purple-500"
+          className={`px-4 py-2 mr-2 rounded ${
+            running
+              ? 'bg-red-600 hover:bg-red-500'
+              : 'bg-purple-600 hover:bg-purple-500'
+          }`}
           onClick={() => {
             setRunning(!running);
             if (!running) {
@@ -85,6 +135,26 @@ export default function Life() {
           onClick={() => setGrid(generateEmptyGrid())}
         >
           Clear
+        </button>
+      </div>
+      <div className="mb-4 flex space-x-2">
+        <button
+          className="px-3 py-1 bg-blue-600 rounded hover:bg-blue-500"
+          onClick={() => insertShape('glider')}
+        >
+          Add Glider (g)
+        </button>
+        <button
+          className="px-3 py-1 bg-blue-600 rounded hover:bg-blue-500"
+          onClick={() => insertShape('blinker')}
+        >
+          Add Blinker (o)
+        </button>
+        <button
+          className="px-3 py-1 bg-blue-600 rounded hover:bg-blue-500"
+          onClick={() => insertShape('block')}
+        >
+          Add Block (b)
         </button>
       </div>
       <div
