@@ -78,8 +78,11 @@ export default function Life() {
   const [running, setRunning] = useState(false);
   const [cellSize, setCellSize] = useState(20);
   const [selectedShape, setSelectedShape] = useState('block');
+  const [interval, setIntervalValue] = useState(500);
   const runningRef = useRef(running);
+  const intervalRef = useRef(interval);
   runningRef.current = running;
+  intervalRef.current = interval;
 
   const updateCellSize = useCallback(() => {
     const availableWidth = window.innerWidth - 40;
@@ -161,7 +164,7 @@ export default function Life() {
         })
       );
     });
-    setTimeout(runSimulation, 500);
+    setTimeout(runSimulation, intervalRef.current);
   }, []);
 
   return (
@@ -195,6 +198,23 @@ export default function Life() {
         >
           Randomize
         </button>
+      </div>
+      <div className="mb-4 flex items-center space-x-2">
+        <label htmlFor="speed" className="text-sm">
+          Speed
+        </label>
+        <input
+          id="speed"
+          type="range"
+          min="100"
+          max="1000"
+          step="100"
+          value={interval}
+          onChange={(e) => setIntervalValue(Number(e.target.value))}
+          className="w-40"
+          style={{ direction: 'rtl' }}
+        />
+        <span className="text-sm">{interval}ms</span>
       </div>
       <div className="mb-4 flex items-center space-x-4">
         <select
