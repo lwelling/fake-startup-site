@@ -227,23 +227,3 @@ body[data-noise]::before {
     opacity: 0.3;
   }
 }
-
-.unspeakable-theme {
-  background: repeating-linear-gradient(
-      45deg,
-      #330000 0,
-      #330000 10px,
-      #000 10px,
-      #000 20px
-    );
-}
-
-.typing::after {
-  content: '|';
-  animation: blink 1s step-end infinite;
-}
-
-@keyframes blink {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0; }
-}

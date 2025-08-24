@@ -349,7 +349,6 @@ export default function Life() {
                   : darkMode
                     ? 'transparent'
                     : '#fff',
-                transition: `background-color ${interval}ms linear`,
               }}
             />
           ))

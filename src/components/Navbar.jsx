@@ -6,7 +6,6 @@ const links = [
   { to: '/brainrotaas', label: 'BrainROTAaS' },
   { to: '/shi-spot', label: 'Shi Spot' },
   { to: '/gaslight', label: 'GaslightGPT' },
-  { to: '/unspeakable', label: 'Unspeakable' },
   { to: '/life', label: 'Game of Life' },
 ];
 
