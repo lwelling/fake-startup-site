@@ -170,11 +170,28 @@ export default function Life() {
 
   return (
     <div
-      className={`min-h-screen flex flex-col items-center justify-center p-4 ${
+      className={`relative min-h-screen flex flex-col items-center justify-center p-4 ${
         darkMode ? 'bg-gray-800 text-white' : 'bg-white text-black'
       }`}
     >
-      <div className="mb-4 flex flex-col sm:flex-row gap-2">
+      <div className="absolute top-4 right-4">
+        <button
+          onClick={() => setDarkMode(!darkMode)}
+          aria-label="Toggle dark mode"
+          className={`relative w-14 h-8 rounded-full p-1 flex items-center transition-colors duration-300 ${
+            darkMode ? 'bg-gray-600' : 'bg-yellow-400'
+          }`}
+        >
+          <div
+            className={`w-6 h-6 bg-white rounded-full shadow-md transform transition-transform duration-300 flex items-center justify-center ${
+              darkMode ? 'translate-x-6' : ''
+            }`}
+          >
+            <span className="text-sm">{darkMode ? '🌙' : '☀️'}</span>
+          </div>
+        </button>
+      </div>
+      <div className="mb-4 flex flex-row flex-wrap gap-2 justify-center">
         <button
           className={`px-4 py-2 rounded ${
             running
@@ -202,12 +219,6 @@ export default function Life() {
           onClick={randomize}
         >
           Randomize
-        </button>
-        <button
-          className="px-4 py-2 bg-blue-600 rounded hover:bg-blue-500"
-          onClick={() => setDarkMode(!darkMode)}
-        >
-          {darkMode ? 'Light Mode' : 'Dark Mode'}
         </button>
       </div>
       <div className="mb-4 flex flex-col sm:flex-row sm:items-center gap-2 w-full sm:w-auto">
