@@ -244,37 +244,43 @@ export default function Life() {
           </optgroup>
         </select>
         {selectedShape && (
-          <div
-            draggable
-            onDragStart={(e) => e.dataTransfer.setData('shape', selectedShape)}
-            className="inline-block"
-            style={{
-              display: 'grid',
-              gridTemplateColumns: `repeat(${shapePatterns[selectedShape][0].length}, 15px)`,
-            }}
-          >
-            {(() => {
-              const coords = new Set(
-                shapes[selectedShape].map(([r, c]) => `${r}-${c}`)
-              );
-              const rows = shapePatterns[selectedShape].length;
-              const cols = shapePatterns[selectedShape][0].length;
-              return Array.from({ length: rows }).flatMap((_, r) =>
-                Array.from({ length: cols }).map((_, c) => (
-                  <div
-                    key={`${r}-${c}`}
-                    className="border border-gray-700"
-                    style={{
-                      width: 15,
-                      height: 15,
-                      backgroundColor: coords.has(`${r}-${c}`)
-                        ? '#6b21a8'
-                        : undefined,
-                    }}
-                  />
-                ))
-              );
-            })()}
+          <div className="flex flex-col items-center">
+            <span className="text-xs text-gray-300 mb-1">
+              Drag onto the grid or click to place randomly
+            </span>
+            <div
+              draggable
+              onDragStart={(e) => e.dataTransfer.setData('shape', selectedShape)}
+              onClick={() => insertShape(selectedShape)}
+              className="inline-block cursor-pointer hover:opacity-80"
+              style={{
+                display: 'grid',
+                gridTemplateColumns: `repeat(${shapePatterns[selectedShape][0].length}, 15px)`,
+              }}
+            >
+              {(() => {
+                const coords = new Set(
+                  shapes[selectedShape].map(([r, c]) => `${r}-${c}`)
+                );
+                const rows = shapePatterns[selectedShape].length;
+                const cols = shapePatterns[selectedShape][0].length;
+                return Array.from({ length: rows }).flatMap((_, r) =>
+                  Array.from({ length: cols }).map((_, c) => (
+                    <div
+                      key={`${r}-${c}`}
+                      className="border border-gray-700"
+                      style={{
+                        width: 15,
+                        height: 15,
+                        backgroundColor: coords.has(`${r}-${c}`)
+                          ? '#6b21a8'
+                          : undefined,
+                      }}
+                    />
+                  ))
+                );
+              })()}
+            </div>
           </div>
         )}
       </div>
