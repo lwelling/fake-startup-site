@@ -60,13 +60,18 @@ module.exports = async function handler(req, res) {
         model: 'gpt-3.5-turbo',
         messages: [
           {
+            role: 'system',
+            content:
+              'Select one complex STEM topic at random. The choice should be evenly distributed among biology, geology, astronomy, physics, chemistry, and mathematics. Avoid defaulting to quantum-related subjects; if a physics topic is chosen, prefer non-quantum areas so that the overall distribution remains balanced.',
+          },
+          {
             role: 'user',
             content:
-              'Pick an extremely complex STEM subject from biology, geology, astronomy, physics, chemistry, or mathematics and explain it. Respond with JSON containing the fields "subject", "complex", and "simple" where "complex" is one technical paragraph and "simple" is the same idea explained in one sentence for a five-year-old.',
+              'Explain the chosen subject. Respond with JSON containing the fields "subject", "complex", and "simple" where "complex" is one technical paragraph and "simple" is the same idea explained in one sentence for a five-year-old.',
           },
         ],
         max_tokens: 200,
-        temperature: 1,
+        temperature: 1.3,
       }),
     });
 
