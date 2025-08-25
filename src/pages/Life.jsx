@@ -179,9 +179,9 @@ export default function Life() {
         darkMode ? 'bg-gray-800 text-white' : 'bg-white text-black'
       }`}
     >
-      <div className="absolute top-4 right-4">
-        <button
-          onClick={() => setDarkMode(!darkMode)}
+        <div className="absolute top-4 right-4">
+          <button
+            onClick={() => setDarkMode(!darkMode)}
           aria-label="Toggle dark mode"
           className={`relative w-14 h-8 rounded-full p-1 flex items-center transition-colors duration-300 ${
             darkMode ? 'bg-gray-600' : 'bg-yellow-400'
@@ -195,8 +195,22 @@ export default function Life() {
             <span className="text-sm">{darkMode ? '🌙' : '☀️'}</span>
           </div>
         </button>
-      </div>
-      <div className="mb-4 flex flex-row flex-wrap gap-2 justify-center">
+        </div>
+        <div className="max-w-2xl mb-6 text-center">
+          <h1 className="text-3xl font-bold mb-2">Conway's Game of Life</h1>
+          <p className="mb-4">
+            Created by mathematician John Conway in 1970, the Game of Life is a
+            zero-player cellular automaton that fascinated readers of
+            <em>Scientific American</em> and early computer enthusiasts.
+          </p>
+          <ol className="list-decimal list-inside text-left space-y-1">
+            <li>Any live cell with fewer than two live neighbors dies.</li>
+            <li>Any live cell with two or three live neighbors lives on.</li>
+            <li>Any live cell with more than three live neighbors dies.</li>
+            <li>Any dead cell with exactly three live neighbors becomes a live cell.</li>
+          </ol>
+        </div>
+        <div className="mb-4 flex flex-row flex-wrap gap-2 justify-center">
         <button
           className={`px-4 py-2 rounded text-white ${
             running
