@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 const links = [
   { to: '/', label: 'Home' },
@@ -11,6 +12,7 @@ const links = [
 
 export default function Navbar() {
   const [open, setOpen] = useState(false);
+  const { signOut } = useAuth();
 
   const renderLinks = () =>
     links.map((link) => (
@@ -49,13 +51,21 @@ export default function Navbar() {
           </svg>
         </button>
 
-        <ul className="hidden md:flex gap-4">{renderLinks()}</ul>
+        <ul className="hidden md:flex gap-4 items-center">
+          {renderLinks()}
+          <li>
+            <button onClick={signOut} className="hover:underline">Sign out</button>
+          </li>
+        </ul>
       </div>
 
       <ul
         className={`${open ? 'flex' : 'hidden'} flex-col gap-2 mt-2 md:hidden`}
       >
         {renderLinks()}
+        <li>
+          <button onClick={signOut} className="text-left hover:underline">Sign out</button>
+        </li>
       </ul>
     </nav>
   );

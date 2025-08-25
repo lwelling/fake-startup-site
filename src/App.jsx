@@ -6,6 +6,7 @@ import ShiSpot from './pages/ShiSpot.jsx';
 import GaslightGPT from './pages/GaslightGPT.jsx';
 import Navbar from './components/Navbar.jsx';
 import Life from './pages/Life.jsx';
+import { useAuth } from './context/AuthContext';
 
 function TitleUpdater() {
   const location = useLocation();
@@ -25,6 +26,29 @@ function TitleUpdater() {
 }
 
 export default function App() {
+  const { user, loading, signIn } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        Loading...
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <button
+          onClick={signIn}
+          className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-500"
+        >
+          Sign in with Google
+        </button>
+      </div>
+    );
+  }
+
   return (
     <BrowserRouter>
       <TitleUpdater />

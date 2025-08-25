@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import FirebasePing from '../components/FirebasePing';
 
 export default function Home() {
   const [message, setMessage] = useState('');
@@ -53,7 +52,6 @@ export default function Home() {
             {loading ? 'Sending...' : 'Contact Me'}
           </button>
         </form>
-        <FirebasePing />
         {loading && (
           <div className="fixed top-4 right-4">
             <div className="w-8 h-8 border-4 border-purple-400 border-t-transparent border-solid rounded-full animate-spin"></div>
