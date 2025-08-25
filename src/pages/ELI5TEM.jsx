@@ -5,20 +5,23 @@ export default function ELI5TEM() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        const res = await fetch('/api/eli5tem');
-        if (!res.ok) throw new Error('Bad response');
-        const json = await res.json();
-        setData(json);
-      } catch (err) {
-        console.error(err);
-        setError('Failed to load.');
-      } finally {
-        setLoading(false);
-      }
+  async function fetchData() {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch('/api/eli5tem');
+      if (!res.ok) throw new Error('Bad response');
+      const json = await res.json();
+      setData(json);
+    } catch (err) {
+      console.error(err);
+      setError('Failed to load.');
+    } finally {
+      setLoading(false);
     }
+  }
+
+  useEffect(() => {
     fetchData();
   }, []);
 
@@ -35,6 +38,13 @@ export default function ELI5TEM() {
             <p className="font-semibold">{data.simple}</p>
           </div>
         )}
+        <button
+          onClick={fetchData}
+          disabled={loading}
+          className="px-4 py-2 bg-blue-500 text-white rounded disabled:opacity-50"
+        >
+          Regenerate
+        </button>
       </div>
     </div>
   );
