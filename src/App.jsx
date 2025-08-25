@@ -7,6 +7,7 @@ import GaslightGPT from './pages/GaslightGPT.jsx';
 import Navbar from './components/Navbar.jsx';
 import Life from './pages/Life.jsx';
 import ELI5TEM from './pages/ELI5TEM.jsx';
+import Breaking from './pages/Breaking.jsx';
 
 function TitleUpdater() {
   const location = useLocation();
@@ -17,6 +18,7 @@ function TitleUpdater() {
       '/brainrotaas': 'lkw.lol - BrainRotaas',
       '/shi-spot': 'lkw.lol - Shi Spot',
       '/gaslight': 'lkw.lol - GaslightGPT',
+      '/breaking': 'lkw.lol - Breaking News',
       '/life': 'lkw.lol - Life',
       '/ELI5TEM': 'lkw.lol - ELI5TEM',
     };
@@ -36,6 +38,7 @@ export default function App() {
         <Route path="/brainrotaas" element={<BrainRotaas />} />
         <Route path="/shi-spot" element={<ShiSpot />} />
         <Route path="/gaslight" element={<GaslightGPT />} />
+        <Route path="/breaking" element={<Breaking />} />
         <Route path="/life" element={<Life />} />
         <Route path="/ELI5TEM" element={<ELI5TEM />} />
       </Routes>
