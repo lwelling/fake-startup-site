@@ -125,29 +125,31 @@ export default function Note() {
       <div className="space-y-2">
         {notes.map((note) => (
           <div key={note.id} className="relative overflow-hidden">
+            <div className="absolute inset-y-0 right-0 flex">
+              <button
+                type="button"
+                onClick={() => startEdit(note)}
+                className="w-16 bg-green-500 text-white"
+              >
+                Edit
+              </button>
+              <button
+                type="button"
+                onClick={() => handleDelete(note.id)}
+                className="w-16 bg-red-500 text-white"
+              >
+                Delete
+              </button>
+            </div>
             <div
-              className={`flex transition-transform duration-300 ${swipedId === note.id ? '-translate-x-32' : ''}`}
+              className={`relative z-10 transition-transform duration-300 ${
+                swipedId === note.id ? '-translate-x-32' : ''
+              }`}
               onTouchStart={handleTouchStart}
               onTouchEnd={(e) => handleTouchEnd(note.id, e)}
             >
               <div className="bg-white p-4 shadow rounded w-full">
                 {note.text}
-              </div>
-              <div className="flex">
-                <button
-                  type="button"
-                  onClick={() => startEdit(note)}
-                  className="w-16 bg-green-500 text-white"
-                >
-                  Edit
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleDelete(note.id)}
-                  className="w-16 bg-red-500 text-white"
-                >
-                  Delete
-                </button>
               </div>
             </div>
           </div>
