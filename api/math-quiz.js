@@ -10,7 +10,8 @@ const fallbackQuiz = () => {
     {
       question: 'What is the value of x in 3x - 5 = 16?',
       choices: ['5', '7', '8', '11'],
-      answer: 2,
+      // 3x - 5 = 16 -> x = 7 which is at index 1
+      answer: 1,
     },
     {
       question: 'If x^2 = 49, what is x?',
@@ -20,7 +21,8 @@ const fallbackQuiz = () => {
     {
       question: 'Simplify: (x^2 - 9) / (x - 3) when x = 5',
       choices: ['7', '8', '9', '10'],
-      answer: 2,
+      // (25 - 9) / (5 - 3) = 8 which is at index 1
+      answer: 1,
     },
   ];
   return getRandom(quizzes);
@@ -82,6 +84,14 @@ module.exports = async function handler(req, res) {
         }
       } catch (err) {
         quiz = null;
+      }
+    }
+
+    if (quiz && typeof quiz.answer === 'number') {
+      // The model sometimes returns a 1-based index. Convert to 0-based
+      // indexing so it aligns with the front-end expectations.
+      if (quiz.answer >= 1 && quiz.answer <= 4) {
+        quiz.answer -= 1;
       }
     }
 
