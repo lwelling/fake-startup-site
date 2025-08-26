@@ -1,4 +1,4 @@
-export default function SquareGrid({ grid, cellSize, toggle }) {
+export default function SquareGrid({ grid, cellSize, toggle, insertShapeAt }) {
   return (
     <div
       className="grid"
@@ -9,6 +9,11 @@ export default function SquareGrid({ grid, cellSize, toggle }) {
           <div
             key={`${i}-${j}`}
             onClick={() => toggle(i, j)}
+            onDragOver={e => e.preventDefault()}
+            onDrop={e => {
+              const shape = e.dataTransfer.getData('shape');
+              if (shape && insertShapeAt) insertShapeAt(shape, i, j);
+            }}
             className="border border-gray-400"
             style={{
               width: cellSize,
