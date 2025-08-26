@@ -1,373 +1,60 @@
-import { useState, useRef, useCallback, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import LifeControls from '../components/life/LifeControls';
+import SquareGrid from '../components/life/SquareGrid';
+import HexGrid from '../components/life/HexGrid';
+import TriGrid from '../components/life/TriGrid';
+import { computeRuleSets, getNeighborFunction } from '../lib/rules';
+import { useLife } from '../hooks/useLife';
 
-const numRows = 25;
-const numCols = 25;
-const operations = [
-  [0, 1],
-  [0, -1],
-  [1, 0],
-  [-1, 0],
-  [1, 1],
-  [1, -1],
-  [-1, 1],
-  [-1, -1],
-];
-
-const shapePatterns = {
-  block: ["OO", "OO"],
-  beehive: [".OO.", "O..O", ".OO."],
-  loaf: [".OO.", "O..O", ".O.O", "..O."],
-  boat: ["OO.", "O.O", ".O."],
-  tub: [".O.", "O.O", ".O."],
-  blinker: ["OOO"],
-  toad: [".OOO", "OOO."],
-  beacon: ["OO..", "OO..", "..OO", "..OO"],
-  pulsar: [
-    "..OOO...OOO..",
-    ".............",
-    "O....O.O....O",
-    "O....O.O....O",
-    "O....O.O....O",
-    "..OOO...OOO..",
-    ".............",
-    "..OOO...OOO..",
-    "O....O.O....O",
-    "O....O.O....O",
-    "O....O.O....O",
-    ".............",
-    "..OOO...OOO..",
-  ],
-  "penta-decathlon": [
-    ".O.",
-    "OOO",
-    ".O.",
-    ".O.",
-    ".O.",
-    ".O.",
-    ".O.",
-    ".O.",
-    "OOO",
-    ".O.",
-  ],
-  glider: [".O.", "..O", "OOO"],
-  lwss: [".O..O", "O....", "O...O", "OOOO."],
-  mwss: ["..O..O", "O.....", "O....O", "OOOOO.", ".O..O."],
-  hwss: ["..O...O", "O......", "O.....O", "OOOOOO.", ".OO..O."],
-};
-
-const patternToCoords = (pattern) => {
-  const coords = [];
-  pattern.forEach((row, r) => {
-    row.split('').forEach((cell, c) => {
-      if (cell === 'O') coords.push([r, c]);
-    });
-  });
-  return coords;
-};
-
-const shapes = Object.fromEntries(
-  Object.entries(shapePatterns).map(([name, pattern]) => [name, patternToCoords(pattern)])
-);
-
-const generateEmptyGrid = () => {
-  return Array.from({ length: numRows }, () => Array(numCols).fill(0));
-};
+const ROWS = 20;
+const COLS = 20;
+const CELL = 20;
 
 export default function Life() {
-  const [grid, setGrid] = useState(() => generateEmptyGrid());
-  const [running, setRunning] = useState(false);
-  const [cellSize, setCellSize] = useState(20);
-  const [selectedShape, setSelectedShape] = useState('block');
-  const [interval, setIntervalValue] = useState(500);
-  const [darkMode, setDarkMode] = useState(() => {
-    if (typeof window !== 'undefined' && window.matchMedia) {
-      return window.matchMedia('(prefers-color-scheme: dark)').matches;
-    }
-    return false;
-  });
-  const runningRef = useRef(running);
-  const intervalRef = useRef(interval);
-  runningRef.current = running;
-  intervalRef.current = interval;
+  const [shape, setShape] = useState(() => Number(localStorage.getItem('life_shape')) || 4);
+  const [triMode, setTriMode] = useState(() => localStorage.getItem('life_tri') === '1');
+  const [wrap, setWrap] = useState(() => localStorage.getItem('life_wrap') !== '0');
+  const [speed, setSpeed] = useState(() => Number(localStorage.getItem('life_speed')) || 500);
 
-  const updateCellSize = useCallback(() => {
-    const availableWidth = window.innerWidth - 40;
-    const availableHeight = window.innerHeight - 160;
-    const size = Math.min(
-      20,
-      Math.floor(availableWidth / numCols),
-      Math.floor(availableHeight / numRows)
-    );
-    setCellSize(size);
-  }, []);
+  useEffect(() => { localStorage.setItem('life_shape', String(shape)); }, [shape]);
+  useEffect(() => { localStorage.setItem('life_tri', triMode ? '1':'0'); }, [triMode]);
+  useEffect(() => { localStorage.setItem('life_wrap', wrap ? '1':'0'); }, [wrap]);
+  useEffect(() => { localStorage.setItem('life_speed', String(speed)); }, [speed]);
 
-  const insertShapeAt = useCallback((shape, x, y) => {
-    const shapeCells = shapes[shape];
-    setGrid((g) => {
-      const newGrid = g.map((row) => [...row]);
-      shapeCells.forEach(([dx, dy]) => {
-        const newX = x + dx;
-        const newY = y + dy;
-        if (newX >= 0 && newX < numRows && newY >= 0 && newY < numCols) {
-          newGrid[newX][newY] = 1;
-        }
-      });
-      return newGrid;
-    });
-  }, []);
+  const { N, fn: neighborFn } = getNeighborFunction(shape, triMode);
+  const { birthSet, surviveSet, ruleText } = computeRuleSets(N);
 
-  const insertShape = useCallback((shape) => {
-    const shapeCells = shapes[shape];
-    const maxX = Math.max(...shapeCells.map(([x]) => x));
-    const maxY = Math.max(...shapeCells.map(([, y]) => y));
-    const offsetX = Math.floor(Math.random() * Math.max(1, numRows - maxX));
-    const offsetY = Math.floor(Math.random() * Math.max(1, numCols - maxY));
-    insertShapeAt(shape, offsetX, offsetY);
-  }, [insertShapeAt]);
+  const { grid, setGrid, running, start, stop, step, randomize, clear } =
+    useLife(ROWS, COLS, neighborFn, birthSet, surviveSet, wrap, speed);
 
-  const randomize = useCallback(() => {
-    const names = Object.keys(shapes);
-    for (let i = 0; i < 5; i++) {
-      const shape = names[Math.floor(Math.random() * names.length)];
-      insertShape(shape);
-    }
-  }, [insertShape]);
+  const toggle = useCallback((i,j) => {
+    setGrid(g => g.map((row,ri) => row.map((cell,ci) => (ri===i && ci===j) ? (cell?0:1) : cell)));
+  }, [setGrid]);
 
-  useEffect(() => {
-    const handleKey = (e) => {
-      if (e.key === 'g') insertShape('glider');
-      if (e.key === 'o') insertShape('blinker');
-      if (e.key === 'b') insertShape('block');
-    };
-    window.addEventListener('keydown', handleKey);
-    return () => window.removeEventListener('keydown', handleKey);
-  }, [insertShape]);
-
-  useEffect(() => {
-    updateCellSize();
-    window.addEventListener('resize', updateCellSize);
-    return () => window.removeEventListener('resize', updateCellSize);
-  }, [updateCellSize]);
-
-  const runSimulation = useCallback(() => {
-    if (!runningRef.current) return;
-    setGrid((g) => {
-      return g.map((row, i) =>
-        row.map((cell, j) => {
-          let neighbors = 0;
-          operations.forEach(([dx, dy]) => {
-            const newI = (i + dx + numRows) % numRows;
-            const newJ = (j + dy + numCols) % numCols;
-            neighbors += g[newI][newJ];
-          });
-          if (cell === 1 && (neighbors < 2 || neighbors > 3)) {
-            return 0;
-          }
-          if (cell === 0 && neighbors === 3) {
-            return 1;
-          }
-          return cell;
-        })
-      );
-    });
-    setTimeout(runSimulation, intervalRef.current);
-  }, []);
+  let GridComp = SquareGrid;
+  if (shape === 3) GridComp = TriGrid;
+  if (shape === 6) GridComp = HexGrid;
 
   return (
-    <div
-      className={`relative min-h-screen flex flex-col items-center justify-center p-4 ${
-        darkMode ? 'bg-gray-800 text-white' : 'bg-white text-black'
-      }`}
-    >
-        <div className="absolute top-4 right-4">
-          <button
-            onClick={() => setDarkMode(!darkMode)}
-          aria-label="Toggle dark mode"
-          className={`relative w-14 h-8 rounded-full p-1 flex items-center transition-colors duration-300 ${
-            darkMode ? 'bg-gray-600' : 'bg-yellow-400'
-          }`}
-        >
-          <div
-            className={`w-6 h-6 bg-white rounded-full shadow-md transform transition-transform duration-300 flex items-center justify-center ${
-              darkMode ? 'translate-x-6' : ''
-            }`}
-          >
-            <span className="text-sm">{darkMode ? '🌙' : '☀️'}</span>
-          </div>
-        </button>
-        </div>
-        <div className="max-w-2xl mb-6 text-center">
-          <h1 className="text-3xl font-bold mb-2">Conway's Game of Life</h1>
-          <p className="mb-4">
-            Created by mathematician John Conway in 1970, the Game of Life is a
-            zero-player cellular automaton that fascinated readers of
-            <em>Scientific American</em> and early computer enthusiasts.
-          </p>
-          <ol className="list-decimal list-inside text-left space-y-1">
-            <li>Any live cell with fewer than two live neighbors dies.</li>
-            <li>Any live cell with two or three live neighbors lives on.</li>
-            <li>Any live cell with more than three live neighbors dies.</li>
-            <li>Any dead cell with exactly three live neighbors becomes a live cell.</li>
-          </ol>
-        </div>
-        <div className="mb-4 flex flex-row flex-wrap gap-2 justify-center">
-        <button
-          className={`px-4 py-2 rounded text-white ${
-            running
-              ? 'bg-red-600 hover:bg-red-500'
-              : 'bg-purple-600 hover:bg-purple-500'
-          }`}
-          onClick={() => {
-            setRunning(!running);
-            if (!running) {
-              runningRef.current = true;
-              runSimulation();
-            }
-          }}
-        >
-          {running ? 'Stop' : 'Start'}
-        </button>
-        <button
-          className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-500"
-          onClick={() => setGrid(generateEmptyGrid())}
-        >
-          Clear
-        </button>
-        <button
-          className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-500"
-          onClick={randomize}
-        >
-          Randomize
-        </button>
-      </div>
-      <div className="mb-4 flex flex-col sm:flex-row sm:items-center gap-2 w-full sm:w-auto">
-        <label htmlFor="speed" className="text-sm">
-          Speed
-        </label>
-        <input
-          id="speed"
-          type="range"
-          min="100"
-          max="1000"
-          step="100"
-          value={interval}
-          onChange={(e) => setIntervalValue(Number(e.target.value))}
-          className="w-full sm:w-40"
-          style={{ direction: 'rtl' }}
-        />
-        <span className="text-sm">{interval}ms</span>
-      </div>
-      <div className="mb-4 flex flex-col items-center space-y-4 w-full sm:w-auto">
-        <select
-          value={selectedShape}
-          onChange={(e) => setSelectedShape(e.target.value)}
-          className={`${darkMode ? 'bg-gray-700 text-white' : 'bg-gray-200 text-black'} p-2 rounded w-full sm:w-auto`}
-        >
-          <optgroup label="Still Lifes">
-            <option value="block">Block</option>
-            <option value="beehive">Beehive</option>
-            <option value="loaf">Loaf</option>
-            <option value="boat">Boat</option>
-            <option value="tub">Tub</option>
-          </optgroup>
-          <optgroup label="Oscillators">
-            <option value="blinker">Blinker (period 2)</option>
-            <option value="toad">Toad (period 2)</option>
-            <option value="beacon">Beacon (period 2)</option>
-            <option value="pulsar">Pulsar (period 3)</option>
-            <option value="penta-decathlon">Penta-decathlon (period 15)</option>
-          </optgroup>
-          <optgroup label="Spaceships">
-            <option value="glider">Glider</option>
-            <option value="lwss">Light-weight spaceship (LWSS)</option>
-            <option value="mwss">Middleweight spaceship (MWSS)</option>
-            <option value="hwss">Heavy-weight spaceship (HWSS)</option>
-          </optgroup>
-        </select>
-        {selectedShape && (
-          <div className="flex flex-col items-center">
-            <span className={`text-xs mb-1 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-              Drag onto the grid or click to place randomly
-            </span>
-            <div
-              draggable
-              onDragStart={(e) => e.dataTransfer.setData('shape', selectedShape)}
-              onClick={() => insertShape(selectedShape)}
-              className="inline-block cursor-pointer hover:opacity-80"
-              style={{
-                display: 'grid',
-                gridTemplateColumns: `repeat(${shapePatterns[selectedShape][0].length}, 15px)`,
-              }}
-            >
-              {(() => {
-                const coords = new Set(
-                  shapes[selectedShape].map(([r, c]) => `${r}-${c}`)
-                );
-                const rows = shapePatterns[selectedShape].length;
-                const cols = shapePatterns[selectedShape][0].length;
-                return Array.from({ length: rows }).flatMap((_, r) =>
-                  Array.from({ length: cols }).map((_, c) => (
-                    <div
-                      key={`${r}-${c}`}
-                      className={`border ${darkMode ? 'border-gray-700' : 'border-gray-300'}`}
-                      style={{
-                        width: 15,
-                        height: 15,
-                        backgroundColor: coords.has(`${r}-${c}`)
-                          ? darkMode
-                            ? '#6b21a8'
-                            : '#000'
-                          : darkMode
-                            ? undefined
-                            : '#fff',
-                      }}
-                    />
-                  ))
-                );
-              })()}
-            </div>
-          </div>
-        )}
-      </div>
-      <div
-        className="overflow-hidden"
-        style={{
-          display: 'grid',
-          gridTemplateColumns: `repeat(${numCols}, ${cellSize}px)`,
-        }}
-      >
-        {grid.map((rows, i) =>
-          rows.map((col, j) => (
-            <div
-              key={`${i}-${j}`}
-              onClick={() => {
-                const newGrid = grid.map((row) => [...row]);
-                newGrid[i][j] = grid[i][j] ? 0 : 1;
-                setGrid(newGrid);
-              }}
-              onDragOver={(e) => e.preventDefault()}
-              onDrop={(e) => {
-                const shape = e.dataTransfer.getData('shape');
-                if (shape) {
-                  insertShapeAt(shape, i, j);
-                }
-              }}
-              className={`border ${darkMode ? 'border-gray-700' : 'border-gray-300'}`}
-              style={{
-                width: cellSize,
-                height: cellSize,
-                backgroundColor: grid[i][j]
-                  ? darkMode
-                    ? '#6b21a8'
-                    : '#000'
-                  : darkMode
-                    ? 'transparent'
-                    : '#fff',
-              }}
-            />
-          ))
-        )}
-      </div>
+    <div className="p-4 flex flex-col items-center gap-4">
+      <LifeControls
+        shape={shape}
+        setShape={setShape}
+        triMode={triMode}
+        setTriMode={setTriMode}
+        wrap={wrap}
+        setWrap={setWrap}
+        speed={speed}
+        setSpeed={setSpeed}
+        running={running}
+        start={start}
+        stop={stop}
+        step={step}
+        randomize={randomize}
+        clear={clear}
+        ruleText={ruleText}
+      />
+      <GridComp grid={grid} cellSize={CELL} toggle={toggle} />
     </div>
   );
 }
