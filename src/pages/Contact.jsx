@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-export default function Home() {
+export default function Contact() {
   const [message, setMessage] = useState('');
   const [toast, setToast] = useState('');
   const [loading, setLoading] = useState(false);
