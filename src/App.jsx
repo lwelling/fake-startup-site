@@ -6,6 +6,7 @@ import ShiSpot from './pages/ShiSpot.jsx';
 import GaslightGPT from './pages/GaslightGPT.jsx';
 import Navbar from './components/Navbar.jsx';
 import Life from './pages/Life.jsx';
+import Note from './pages/Note.jsx';
 import { useAuth } from './context/AuthContext';
 
 function TitleUpdater() {
@@ -18,6 +19,7 @@ function TitleUpdater() {
       '/shi-spot': 'lkw.lol - Shi Spot',
       '/gaslight': 'lkw.lol - GaslightGPT',
       '/life': 'lkw.lol - Life',
+      '/note': 'lkw.lol - Notes',
     };
     document.title = titles[location.pathname] || 'lkw.lol';
   }, [location.pathname]);
@@ -60,6 +62,7 @@ export default function App() {
         <Route path="/shi-spot" element={<ShiSpot />} />
         <Route path="/gaslight" element={<GaslightGPT />} />
         <Route path="/life" element={<Life />} />
+        <Route path="/note" element={<Note />} />
       </Routes>
     </BrowserRouter>
   );

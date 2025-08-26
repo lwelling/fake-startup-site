@@ -8,6 +8,7 @@ const links = [
   { to: '/shi-spot', label: 'Shi Spot' },
   { to: '/gaslight', label: 'GaslightGPT' },
   { to: '/life', label: 'Game of Life' },
+  { to: '/note', label: 'Notes' },
 ];
 
 export default function Navbar() {
