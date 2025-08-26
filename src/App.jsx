@@ -52,7 +52,10 @@ export default function App() {
       {user && <Navbar />}
       <Routes>
         <Route path="/" element={<Landing />} />
-        <Route path="/contact" element={<Contact />} />
+        <Route
+          path="/contact"
+          element={user ? <Contact /> : <Navigate to="/" replace />}
+        />
         <Route
           path="/brainrotaas"
           element={user ? <BrainRotaas /> : <Navigate to="/" replace />}

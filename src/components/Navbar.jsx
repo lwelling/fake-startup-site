@@ -65,6 +65,9 @@ export default function Navbar() {
       >
         {renderLinks()}
         <li>
+          <hr className="my-2 border-gray-700" />
+        </li>
+        <li>
           <button onClick={signOut} className="text-left hover:underline">Sign out</button>
         </li>
       </ul>
