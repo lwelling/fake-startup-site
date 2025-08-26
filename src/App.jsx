@@ -1,6 +1,13 @@
-import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  useLocation,
+  Navigate,
+} from 'react-router-dom';
 import { useEffect } from 'react';
-import Home from './pages/Home.jsx';
+import Landing from './pages/Landing.jsx';
+import Contact from './pages/Contact.jsx';
 import BrainRotaas from './pages/BrainRotaas.jsx';
 import ShiSpot from './pages/ShiSpot.jsx';
 import GaslightGPT from './pages/GaslightGPT.jsx';
@@ -15,6 +22,7 @@ function TitleUpdater() {
   useEffect(() => {
     const titles = {
       '/': 'lkw.lol',
+      '/contact': 'lkw.lol - Contact',
       '/brainrotaas': 'lkw.lol - BrainRotaas',
       '/shi-spot': 'lkw.lol - Shi Spot',
       '/gaslight': 'lkw.lol - GaslightGPT',
@@ -28,7 +36,7 @@ function TitleUpdater() {
 }
 
 export default function App() {
-  const { user, loading, signIn } = useAuth();
+  const { user, loading } = useAuth();
 
   if (loading) {
     return (
@@ -38,31 +46,33 @@ export default function App() {
     );
   }
 
-  if (!user) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <button
-          type="button"
-          onClick={signIn}
-          className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-500"
-        >
-          Sign in with Google
-        </button>
-      </div>
-    );
-  }
-
   return (
     <BrowserRouter>
       <TitleUpdater />
-      <Navbar />
+      {user && <Navbar />}
       <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/brainrotaas" element={<BrainRotaas />} />
-        <Route path="/shi-spot" element={<ShiSpot />} />
-        <Route path="/gaslight" element={<GaslightGPT />} />
-        <Route path="/life" element={<Life />} />
-        <Route path="/note" element={<Note />} />
+        <Route path="/" element={<Landing />} />
+        <Route path="/contact" element={<Contact />} />
+        <Route
+          path="/brainrotaas"
+          element={user ? <BrainRotaas /> : <Navigate to="/" replace />}
+        />
+        <Route
+          path="/shi-spot"
+          element={user ? <ShiSpot /> : <Navigate to="/" replace />}
+        />
+        <Route
+          path="/gaslight"
+          element={user ? <GaslightGPT /> : <Navigate to="/" replace />}
+        />
+        <Route
+          path="/life"
+          element={user ? <Life /> : <Navigate to="/" replace />}
+        />
+        <Route
+          path="/note"
+          element={user ? <Note /> : <Navigate to="/" replace />}
+        />
       </Routes>
     </BrowserRouter>
   );

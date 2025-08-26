@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 const links = [
-  { to: '/', label: 'Home' },
+  { to: '/contact', label: 'Contact' },
   { to: '/brainrotaas', label: 'BrainROTAaS' },
   { to: '/shi-spot', label: 'Shi Spot' },
   { to: '/gaslight', label: 'GaslightGPT' },
