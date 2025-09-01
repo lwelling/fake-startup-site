@@ -136,6 +136,13 @@ export default function Pipeline() {
     return sortConfig.direction === 'asc' ? comp : -comp;
   });
 
+  const carsWithStatus = sortedCars.map((car) => ({
+    car,
+    status: getBadgeAndAction(car),
+  }));
+
+  const actionItems = carsWithStatus.filter(({ status }) => status.action);
+
   const sortIcon = (key) => {
     if (sortConfig.key !== key) return '';
     return sortConfig.direction === 'asc' ? '▲' : '▼';
@@ -144,6 +151,18 @@ export default function Pipeline() {
   return (
     <div className="max-w-5xl mx-auto p-4">
       <h1 className="text-3xl font-bold mb-6">Pipeline</h1>
+      {actionItems.length > 0 && (
+        <div className="mb-6 p-4 bg-white rounded shadow">
+          <h2 className="text-xl font-semibold mb-2">Action Items</h2>
+          <ul className="list-disc list-inside text-sm text-gray-700">
+            {actionItems.map(({ car, status }) => (
+              <li key={car['Stock Number']}>
+                <span className="font-medium">{car['Stock Number']}</span>: {status.action}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
       <label htmlFor="inventory" className="block mb-2 font-semibold">
         Upload current inventory
       </label>
@@ -200,41 +219,36 @@ export default function Pipeline() {
           </tr>
         </thead>
         <tbody>
-          {sortedCars.map((car) => {
-            const status = getBadgeAndAction(car);
-            return (
-              <tr
-                key={car['Stock Number']}
-                className="cursor-pointer hover:bg-gray-50"
-                onClick={() =>
-                  navigate(`/pipeline/${car['Stock Number']}`, { state: { car } })
-                }
-              >
-                <td className="px-4 py-2 font-medium">
-                  {car['Stock Number']}
-                </td>
-                <td className="px-4 py-2">{car.Year}</td>
-                <td className="px-4 py-2">{car.Make}</td>
-                <td className="px-4 py-2">{car.Model}</td>
-                <td className="px-4 py-2 text-right">{car.Odometer} mi</td>
-                <td className="px-4 py-2 text-right">
-                  {car['Days In Stock']} days
-                </td>
-                <td className="px-4 py-2">
-                  {status.action ? (
-                    <span className="flex items-center text-sm text-red-600">
-                      <span className="mr-1">{status.badge}</span>
-                      {status.action}
-                    </span>
-                  ) : (
-                    status.badge && (
-                      <span className="text-green-600">{status.badge}</span>
-                    )
-                  )}
-                </td>
-              </tr>
-            );
-          })}
+          {carsWithStatus.map(({ car, status }) => (
+            <tr
+              key={car['Stock Number']}
+              className="cursor-pointer hover:bg-gray-50"
+              onClick={() =>
+                navigate(`/pipeline/${car['Stock Number']}`, { state: { car } })
+              }
+            >
+              <td className="px-4 py-2 font-medium">{car['Stock Number']}</td>
+              <td className="px-4 py-2">{car.Year}</td>
+              <td className="px-4 py-2">{car.Make}</td>
+              <td className="px-4 py-2">{car.Model}</td>
+              <td className="px-4 py-2 text-right">{car.Odometer} mi</td>
+              <td className="px-4 py-2 text-right">
+                {car['Days In Stock']} days
+              </td>
+              <td className="px-4 py-2">
+                {status.action ? (
+                  <span className="flex items-center text-sm text-red-600">
+                    <span className="mr-1">{status.badge}</span>
+                    {status.action}
+                  </span>
+                ) : (
+                  status.badge && (
+                    <span className="text-green-600">{status.badge}</span>
+                  )
+                )}
+              </td>
+            </tr>
+          ))}
         </tbody>
       </table>
     </div>
