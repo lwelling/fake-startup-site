@@ -11,6 +11,7 @@ import { db } from '../lib/firebase';
 
 export default function Pipeline() {
   const [cars, setCars] = useState([]);
+  const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -90,6 +91,10 @@ export default function Pipeline() {
       return { badge: '✅', action: null };
     }
 
+    if (inspection === 'pending') {
+      return { badge: '⏳', action: 'In recon' };
+    }
+
     if (inspection !== 'complete' && inspection !== 'pending') {
       return { badge: '⚠️', action: 'Get inspected' };
     }
@@ -109,6 +114,33 @@ export default function Pipeline() {
     return { badge: '', action: '' };
   };
 
+  const handleSort = (key) => {
+    setSortConfig((prev) => {
+      if (prev.key === key) {
+        return { key, direction: prev.direction === 'asc' ? 'desc' : 'asc' };
+      }
+      return { key, direction: 'asc' };
+    });
+  };
+
+  const sortedCars = [...cars].sort((a, b) => {
+    if (!sortConfig.key) return 0;
+    const aVal = a[sortConfig.key] || '';
+    const bVal = b[sortConfig.key] || '';
+    const aNum = parseFloat(aVal);
+    const bNum = parseFloat(bVal);
+    if (!isNaN(aNum) && !isNaN(bNum)) {
+      return sortConfig.direction === 'asc' ? aNum - bNum : bNum - aNum;
+    }
+    const comp = String(aVal).localeCompare(String(bVal));
+    return sortConfig.direction === 'asc' ? comp : -comp;
+  });
+
+  const sortIcon = (key) => {
+    if (sortConfig.key !== key) return '';
+    return sortConfig.direction === 'asc' ? '▲' : '▼';
+  };
+
   return (
     <div className="max-w-5xl mx-auto p-4">
       <h1 className="text-3xl font-bold mb-6">Pipeline</h1>
@@ -125,26 +157,70 @@ export default function Pipeline() {
       <p className="text-sm text-gray-500 mb-6">
         Uploading a new CSV will overwrite existing data.
       </p>
-      <ul className="space-y-2">
-        {cars.map((car) => {
-          const status = getBadgeAndAction(car);
-          return (
-            <li key={car['Stock Number']}>
-              <button
-                type="button"
-                className="w-full flex items-center justify-between p-4 bg-white rounded shadow hover:bg-gray-50"
+      <table className="w-full bg-white rounded shadow">
+        <thead>
+          <tr>
+            <th
+              className="px-4 py-2 text-left cursor-pointer"
+              onClick={() => handleSort('Stock Number')}
+            >
+              Stock # {sortIcon('Stock Number')}
+            </th>
+            <th
+              className="px-4 py-2 cursor-pointer"
+              onClick={() => handleSort('Year')}
+            >
+              Year {sortIcon('Year')}
+            </th>
+            <th
+              className="px-4 py-2 cursor-pointer"
+              onClick={() => handleSort('Make')}
+            >
+              Make {sortIcon('Make')}
+            </th>
+            <th
+              className="px-4 py-2 cursor-pointer"
+              onClick={() => handleSort('Model')}
+            >
+              Model {sortIcon('Model')}
+            </th>
+            <th
+              className="px-4 py-2 text-right cursor-pointer"
+              onClick={() => handleSort('Odometer')}
+            >
+              Odometer {sortIcon('Odometer')}
+            </th>
+            <th
+              className="px-4 py-2 text-right cursor-pointer"
+              onClick={() => handleSort('Days In Stock')}
+            >
+              Days {sortIcon('Days In Stock')}
+            </th>
+            <th className="px-4 py-2">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {sortedCars.map((car) => {
+            const status = getBadgeAndAction(car);
+            return (
+              <tr
+                key={car['Stock Number']}
+                className="cursor-pointer hover:bg-gray-50"
                 onClick={() =>
                   navigate(`/pipeline/${car['Stock Number']}`, { state: { car } })
                 }
               >
-                <span className="flex-1 text-left font-medium">
-                  {car['Stock Number']} {car.Year} {car.Make} {car.Model}
-                </span>
-                <div className="flex items-center gap-4">
-                  <span className="text-sm text-gray-500">{car.Odometer} mi</span>
-                  <span className="text-sm text-gray-500">
-                    {car['Days In Stock']} days
-                  </span>
+                <td className="px-4 py-2 font-medium">
+                  {car['Stock Number']}
+                </td>
+                <td className="px-4 py-2">{car.Year}</td>
+                <td className="px-4 py-2">{car.Make}</td>
+                <td className="px-4 py-2">{car.Model}</td>
+                <td className="px-4 py-2 text-right">{car.Odometer} mi</td>
+                <td className="px-4 py-2 text-right">
+                  {car['Days In Stock']} days
+                </td>
+                <td className="px-4 py-2">
                   {status.action ? (
                     <span className="flex items-center text-sm text-red-600">
                       <span className="mr-1">{status.badge}</span>
@@ -155,12 +231,12 @@ export default function Pipeline() {
                       <span className="text-green-600">{status.badge}</span>
                     )
                   )}
-                </div>
-              </button>
-            </li>
-          );
-        })}
-      </ul>
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
     </div>
   );
 }
