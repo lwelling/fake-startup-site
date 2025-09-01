@@ -141,7 +141,9 @@ export default function Pipeline() {
     status: getBadgeAndAction(car),
   }));
 
-  const actionItems = carsWithStatus.filter(({ status }) => status.action);
+  const actionItems = carsWithStatus.filter(
+    ({ status }) => status.action && status.action !== 'In recon'
+  );
 
   const sortIcon = (key) => {
     if (sortConfig.key !== key) return '';
@@ -157,7 +159,10 @@ export default function Pipeline() {
           <ul className="list-disc list-inside text-sm text-gray-700">
             {actionItems.map(({ car, status }) => (
               <li key={car['Stock Number']}>
-                <span className="font-medium">{car['Stock Number']}</span>: {status.action}
+                <span className="font-medium">
+                  {car['Stock Number']} {car.Year} {car.Make} {car.Model}
+                </span>
+                : {status.action}
               </li>
             ))}
           </ul>
