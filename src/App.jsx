@@ -14,6 +14,8 @@ import GaslightGPT from './pages/GaslightGPT.jsx';
 import Navbar from './components/Navbar.jsx';
 import Life from './pages/Life.jsx';
 import Note from './pages/Note.jsx';
+import Pipeline from './pages/Pipeline.jsx';
+import PipelineDetail from './pages/PipelineDetail.jsx';
 import { useAuth } from './context/AuthContext';
 
 function TitleUpdater() {
@@ -28,8 +30,13 @@ function TitleUpdater() {
       '/gaslight': 'lkw.lol - GaslightGPT',
       '/life': 'lkw.lol - Life',
       '/note': 'lkw.lol - Notes',
+      '/pipeline': 'lkw.lol - Pipeline',
     };
-    document.title = titles[location.pathname] || 'lkw.lol';
+    if (location.pathname.startsWith('/pipeline')) {
+      document.title = 'lkw.lol - Pipeline';
+    } else {
+      document.title = titles[location.pathname] || 'lkw.lol';
+    }
   }, [location.pathname]);
 
   return null;
@@ -75,6 +82,14 @@ export default function App() {
         <Route
           path="/note"
           element={user ? <Note /> : <Navigate to="/" replace />}
+        />
+        <Route
+          path="/pipeline"
+          element={user ? <Pipeline /> : <Navigate to="/" replace />}
+        />
+        <Route
+          path="/pipeline/:stockNumber"
+          element={user ? <PipelineDetail /> : <Navigate to="/" replace />}
         />
       </Routes>
     </BrowserRouter>
