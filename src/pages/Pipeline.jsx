@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { BrowserMultiFormatReader } from '@zxing/browser';
 import {
   collection,
   doc,
@@ -12,6 +13,10 @@ import { db } from '../lib/firebase';
 export default function Pipeline() {
   const [cars, setCars] = useState([]);
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
+  const [isScanning, setIsScanning] = useState(false);
+  const [scanModal, setScanModal] = useState(null);
+  const [completedItems, setCompletedItems] = useState([]);
+  const [showCompletedModal, setShowCompletedModal] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -22,6 +27,32 @@ export default function Pipeline() {
     }
     fetchCars();
   }, []);
+
+  useEffect(() => {
+    async function fetchCompleted() {
+      const snap = await getDocs(collection(db, 'completedItems'));
+      setCompletedItems(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+    }
+    fetchCompleted();
+  }, []);
+
+  useEffect(() => {
+    if (isScanning) {
+      const codeReader = new BrowserMultiFormatReader();
+      codeReader
+        .decodeOnceFromVideoDevice(undefined, 'video')
+        .then((result) => {
+          handleVinScanned(result.getText());
+          codeReader.reset();
+        })
+        .catch((err) => {
+          console.error(err);
+          setIsScanning(false);
+          codeReader.reset();
+        });
+      return () => codeReader.reset();
+    }
+  }, [isScanning]);
 
   const handleFileUpload = async (e) => {
     const file = e.target.files && e.target.files[0];
@@ -150,9 +181,70 @@ export default function Pipeline() {
     return sortConfig.direction === 'asc' ? '▲' : '▼';
   };
 
+  const handleVinScanned = (vin) => {
+    setIsScanning(false);
+    const car = cars.find(
+      (c) => c.VIN === vin || c.Vin === vin || c['VIN'] === vin
+    );
+    if (car) {
+      const status = getBadgeAndAction(car);
+      setScanModal({ car, status, vin });
+    } else {
+      setScanModal({ vin, notFound: true });
+    }
+  };
+
+  const completeAction = async () => {
+    if (!scanModal?.car || !scanModal?.status?.action) return;
+    const { car, status, vin } = scanModal;
+    const coll = collection(db, 'completedItems');
+    await setDoc(doc(coll, vin), {
+      vin,
+      stockNumber: car['Stock Number'],
+      action: status.action,
+      completedAt: Date.now(),
+    });
+    setCompletedItems((prev) => [
+      ...prev,
+      { id: vin, vin, stockNumber: car['Stock Number'], action: status.action },
+    ]);
+    setScanModal(null);
+  };
+
+  const clearCompleted = async () => {
+    const coll = collection(db, 'completedItems');
+    const snap = await getDocs(coll);
+    await Promise.all(snap.docs.map((d) => deleteDoc(d.ref)));
+    setCompletedItems([]);
+    setShowCompletedModal(false);
+  };
+
   return (
     <div className="max-w-5xl mx-auto p-4">
-      <h1 className="text-3xl font-bold mb-6">Pipeline</h1>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold">Pipeline</h1>
+        <div className="flex space-x-2">
+          <button
+            type="button"
+            className="px-4 py-2 bg-blue-600 text-white rounded md:hidden"
+            onClick={() => setIsScanning(true)}
+          >
+            Scan VIN
+          </button>
+          <button
+            type="button"
+            className="relative px-4 py-2 bg-gray-800 text-white rounded"
+            onClick={() => setShowCompletedModal(true)}
+          >
+            View Completed Items
+            {completedItems.length > 0 && (
+              <span className="absolute -top-2 -right-2 bg-red-500 text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                {completedItems.length}
+              </span>
+            )}
+          </button>
+        </div>
+      </div>
       {actionItems.length > 0 && (
         <div className="mb-6 p-4 bg-white rounded shadow">
           <h2 className="text-xl font-semibold mb-2">Action Items</h2>
@@ -256,6 +348,112 @@ export default function Pipeline() {
           ))}
         </tbody>
       </table>
+
+      {isScanning && (
+        <div className="fixed inset-0 z-50 flex flex-col bg-black bg-opacity-80">
+          <video id="video" className="flex-1 w-full object-cover" />
+          <button
+            type="button"
+            className="p-4 bg-red-600 text-white"
+            onClick={() => setIsScanning(false)}
+          >
+            Close
+          </button>
+        </div>
+      )}
+
+      {scanModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white p-6 rounded shadow max-w-sm w-full">
+            {scanModal.notFound ? (
+              <>
+                <p className="mb-4">No vehicle found for VIN {scanModal.vin}.</p>
+                <div className="text-right">
+                  <button
+                    className="px-4 py-2 bg-gray-200 rounded"
+                    onClick={() => setScanModal(null)}
+                  >
+                    Close
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <h2 className="text-xl font-semibold mb-2">
+                  {scanModal.car['Stock Number']} {scanModal.car.Year}{' '}
+                  {scanModal.car.Make} {scanModal.car.Model}
+                </h2>
+                {scanModal.status.action ? (
+                  <>
+                    <p className="mb-4">Action needed: {scanModal.status.action}</p>
+                    <div className="flex justify-end space-x-2">
+                      <button
+                        className="px-4 py-2 bg-green-600 text-white rounded"
+                        onClick={completeAction}
+                      >
+                        Complete
+                      </button>
+                      <button
+                        className="px-4 py-2 bg-gray-200 rounded"
+                        onClick={() => setScanModal(null)}
+                      >
+                        Close
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <p className="mb-4">No action items for this vehicle.</p>
+                    <div className="text-right">
+                      <button
+                        className="px-4 py-2 bg-gray-200 rounded"
+                        onClick={() => setScanModal(null)}
+                      >
+                        Close
+                      </button>
+                    </div>
+                  </>
+                )}
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
+      {showCompletedModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white p-6 rounded shadow max-w-sm w-full">
+            <h2 className="text-xl font-semibold mb-4">Completed Items</h2>
+            {completedItems.length === 0 ? (
+              <p className="mb-4 text-sm">No completed items.</p>
+            ) : (
+              <ul className="mb-4 text-sm text-gray-700 max-h-64 overflow-y-auto">
+                {completedItems.map((item) => (
+                  <li key={item.id} className="mb-1">
+                    <span className="font-medium">{item.stockNumber}</span>: {item.action}
+                  </li>
+                ))}
+              </ul>
+            )}
+            <div className="flex justify-end space-x-2">
+              {completedItems.length > 0 && (
+                <button
+                  className="px-4 py-2 bg-red-600 text-white rounded"
+                  onClick={clearCompleted}
+                >
+                  I have recorded these items in DealerCenter. Delete Items.
+                </button>
+              )}
+              <button
+                className="px-4 py-2 bg-gray-200 rounded"
+                onClick={() => setShowCompletedModal(false)}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
