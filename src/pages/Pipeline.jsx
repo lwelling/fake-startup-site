@@ -63,6 +63,52 @@ export default function Pipeline() {
     reader.readAsText(file);
   };
 
+  const parseBool = (value) => {
+    if (typeof value === 'string') {
+      const v = value.toLowerCase();
+      return v === 'true' || v === 'yes';
+    }
+    return Boolean(value);
+  };
+
+  const getBadgeAndAction = (car) => {
+    const inspection = (car['Inspection Status'] || '').toLowerCase();
+    const emission = (car['Emission Status'] || '').toLowerCase();
+    const hasPhoto = parseBool(car['Has Photo']);
+    const exterior = car['Exterior Color'];
+    const interior = car['Interior Color'];
+    const price = car['Asking Price'];
+
+    if (
+      inspection === 'complete' &&
+      emission === 'passed' &&
+      hasPhoto &&
+      exterior &&
+      interior &&
+      price
+    ) {
+      return { badge: '✅', action: null };
+    }
+
+    if (inspection !== 'complete' && inspection !== 'pending') {
+      return { badge: '⚠️', action: 'Get inspected' };
+    }
+
+    if (inspection === 'complete' && emission === 'pending') {
+      return { badge: '⚠️', action: 'Get Emissions' };
+    }
+
+    if (inspection === 'complete' && emission === 'passed' && !hasPhoto) {
+      return { badge: '⚠️', action: 'Get photo' };
+    }
+
+    if (!exterior || !interior || !price) {
+      return { badge: '⚠️', action: 'Price or color missing' };
+    }
+
+    return { badge: '', action: '' };
+  };
+
   return (
     <div className="max-w-5xl mx-auto p-4">
       <h1 className="text-3xl font-bold mb-6">Pipeline</h1>
@@ -80,27 +126,40 @@ export default function Pipeline() {
         Uploading a new CSV will overwrite existing data.
       </p>
       <ul className="space-y-2">
-        {cars.map((car) => (
-          <li key={car['Stock Number']}>
-            <button
-              type="button"
-              className="w-full flex items-center justify-between p-4 bg-white rounded shadow hover:bg-gray-50"
-              onClick={() =>
-                navigate(`/pipeline/${car['Stock Number']}`, { state: { car } })
-              }
-            >
-              <span className="flex-1 text-left font-medium">
-                {car['Stock Number']} {car.Year} {car.Make} {car.Model}
-              </span>
-              <span className="mr-4 text-sm text-gray-500">
-                {car.Odometer} mi
-              </span>
-              <span className="text-sm text-gray-500">
-                {car['Days In Stock']} days
-              </span>
-            </button>
-          </li>
-        ))}
+        {cars.map((car) => {
+          const status = getBadgeAndAction(car);
+          return (
+            <li key={car['Stock Number']}>
+              <button
+                type="button"
+                className="w-full flex items-center justify-between p-4 bg-white rounded shadow hover:bg-gray-50"
+                onClick={() =>
+                  navigate(`/pipeline/${car['Stock Number']}`, { state: { car } })
+                }
+              >
+                <span className="flex-1 text-left font-medium">
+                  {car['Stock Number']} {car.Year} {car.Make} {car.Model}
+                </span>
+                <div className="flex items-center gap-4">
+                  <span className="text-sm text-gray-500">{car.Odometer} mi</span>
+                  <span className="text-sm text-gray-500">
+                    {car['Days In Stock']} days
+                  </span>
+                  {status.action ? (
+                    <span className="flex items-center text-sm text-red-600">
+                      <span className="mr-1">{status.badge}</span>
+                      {status.action}
+                    </span>
+                  ) : (
+                    status.badge && (
+                      <span className="text-green-600">{status.badge}</span>
+                    )
+                  )}
+                </div>
+              </button>
+            </li>
+          );
+        })}
       </ul>
     </div>
   );
