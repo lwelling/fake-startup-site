@@ -1,31 +1,62 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '../lib/firebase';
 import { useAuth } from '../context/AuthContext';
 
-const links = [
+const pipelineLink = { to: '/pipeline', label: 'Pipeline' };
+const playgroundLinks = [
   { to: '/contact', label: 'Contact' },
   { to: '/brainrotaas', label: 'BrainROTAaS' },
   { to: '/shi-spot', label: 'Shi Spot' },
   { to: '/gaslight', label: 'GaslightGPT' },
   { to: '/life', label: 'Game of Life' },
   { to: '/note', label: 'Notes' },
-  { to: '/pipeline', label: 'Pipeline' },
 ];
 
 export default function Navbar() {
   const [open, setOpen] = useState(false);
+  const [pgOpen, setPgOpen] = useState(false);
+  const [playgroundPass, setPlaygroundPass] = useState('');
   const { signOut } = useAuth();
+  const navigate = useNavigate();
 
-  const renderLinks = () =>
-    links.map((link) => (
+  useEffect(() => {
+    async function fetchPass() {
+      try {
+        const snap = await getDoc(doc(db, 'passwords', 'playground'));
+        const data = snap.data();
+        setPlaygroundPass(data?.value || data?.password || '');
+      } catch {
+        // ignore
+      }
+    }
+    fetchPass();
+  }, []);
+
+  const handlePlaygroundNav = (path) => {
+    window.alert('Access to this page requires a password.');
+    const input = window.prompt('Enter password:');
+    if (input === playgroundPass) {
+      navigate(path);
+    } else if (input !== null) {
+      window.alert('Incorrect password');
+    }
+  };
+
+  const renderPlaygroundLinks = () =>
+    playgroundLinks.map((link) => (
       <li key={link.to}>
-        <Link
-          to={link.to}
-          className="hover:underline"
-          onClick={() => setOpen(false)}
+        <button
+          onClick={() => {
+            setPgOpen(false);
+            setOpen(false);
+            handlePlaygroundNav(link.to);
+          }}
+          className="block w-full text-left px-4 py-2 hover:underline"
         >
           {link.label}
-        </Link>
+        </button>
       </li>
     ));
 
@@ -54,9 +85,28 @@ export default function Navbar() {
         </button>
 
         <ul className="hidden md:flex gap-4 items-center">
-          {renderLinks()}
           <li>
-            <button onClick={signOut} className="hover:underline">Sign out</button>
+            <Link to={pipelineLink.to} className="hover:underline">
+              {pipelineLink.label}
+            </Link>
+          </li>
+          <li className="relative">
+            <button
+              onClick={() => setPgOpen(!pgOpen)}
+              className="hover:underline"
+            >
+              Playground
+            </button>
+            {pgOpen && (
+              <ul className="absolute left-0 mt-2 bg-gray-800 rounded shadow-md">
+                {renderPlaygroundLinks()}
+              </ul>
+            )}
+          </li>
+          <li>
+            <button onClick={signOut} className="hover:underline">
+              Sign out
+            </button>
           </li>
         </ul>
       </div>
@@ -64,14 +114,38 @@ export default function Navbar() {
       <ul
         className={`${open ? 'flex' : 'hidden'} flex-col gap-2 mt-2 md:hidden`}
       >
-        {renderLinks()}
+        <li>
+          <Link
+            to={pipelineLink.to}
+            className="hover:underline"
+            onClick={() => setOpen(false)}
+          >
+            {pipelineLink.label}
+          </Link>
+        </li>
+        <li>
+          <button
+            onClick={() => setPgOpen(!pgOpen)}
+            className="text-left hover:underline"
+          >
+            Playground
+          </button>
+          {pgOpen && (
+            <ul className="mt-2 ml-4 flex flex-col gap-2">
+              {renderPlaygroundLinks()}
+            </ul>
+          )}
+        </li>
         <li>
           <hr className="my-2 border-gray-700" />
         </li>
         <li>
-          <button onClick={signOut} className="text-left hover:underline">Sign out</button>
+          <button onClick={signOut} className="text-left hover:underline">
+            Sign out
+          </button>
         </li>
       </ul>
     </nav>
   );
 }
+
