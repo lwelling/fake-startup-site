@@ -9,6 +9,7 @@ const links = [
   { to: '/gaslight', label: 'GaslightGPT' },
   { to: '/life', label: 'Game of Life' },
   { to: '/note', label: 'Notes' },
+  { to: '/pipeline', label: 'Pipeline' },
 ];
 
 export default function Navbar() {
