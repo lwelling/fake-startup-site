@@ -18,29 +18,31 @@ export default function FracturedCircleBoard({ className = "", cells = [], onAdj
 
   return (
     <div
-      className={`rounded-3xl border border-white/15 bg-slate-950/80 p-8 shadow-xl shadow-black/40 backdrop-blur ${className}`}
+      className={`rounded-3xl border border-white/15 bg-slate-950/80 p-4 shadow-xl shadow-black/40 backdrop-blur sm:p-6 lg:p-8 ${className}`}
     >
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {safeCells.map((cell, index) => {
           if (!cell) {
             return (
               <div
                 key={`cell-${index}`}
-                className="h-36 rounded-2xl border border-dashed border-slate-700/70 bg-slate-900/60"
+                className="h-32 rounded-2xl border border-dashed border-slate-700/70 bg-slate-900/60 sm:h-36"
               />
             );
           }
 
           const classes = getTypeClasses(cell.type);
+          const displayNumber = index + 1;
+          const parity = displayNumber % 2 === 0 ? "Even" : "Odd";
 
           return (
             <div
               key={`cell-${index}`}
-              className={`flex h-36 flex-col justify-between rounded-2xl border bg-gradient-to-br p-4 shadow-lg shadow-black/20 transition hover:border-white/40 ${classes}`}
+              className={`flex h-32 flex-col justify-between rounded-2xl border bg-gradient-to-br p-4 shadow-lg shadow-black/20 transition hover:border-white/40 sm:h-36 ${classes}`}
             >
               <div className="flex items-center justify-between text-[11px] font-semibold uppercase tracking-[0.25em]">
                 <span className="text-white/80">{cell.type}</span>
-                <span className="text-white/40">{index + 1}</span>
+                <span className="text-white/40">#{displayNumber} · {parity}</span>
               </div>
 
               <div className="space-y-2 text-[11px] font-medium text-white/80">
