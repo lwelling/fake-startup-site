@@ -5,6 +5,7 @@ import { db } from '../lib/firebase';
 import { useAuth } from '../context/AuthContext';
 
 const pipelineLink = { to: '/pipeline', label: 'Pipeline' };
+const pulsarLink = { to: '/pulsar', label: 'Pulsar' };
 const playgroundLinks = [
   { to: '/contact', label: 'Contact' },
   { to: '/brainrotaas', label: 'BrainROTAaS' },
@@ -24,6 +25,7 @@ export default function Navbar() {
   useEffect(() => {
     async function fetchPass() {
       try {
+        if (!db) return;
         const snap = await getDoc(doc(db, 'passwords', 'playground'));
         const data = snap.data();
         setPlaygroundPass(data?.value || data?.password || '');
@@ -32,7 +34,7 @@ export default function Navbar() {
       }
     }
     fetchPass();
-  }, []);
+  }, [db]);
 
   const handlePlaygroundNav = (path) => {
     window.alert('Access to this page requires a password.');
@@ -90,6 +92,11 @@ export default function Navbar() {
               {pipelineLink.label}
             </Link>
           </li>
+          <li>
+            <Link to={pulsarLink.to} className="hover:underline">
+              {pulsarLink.label}
+            </Link>
+          </li>
           <li className="relative">
             <button
               onClick={() => setPgOpen(!pgOpen)}
@@ -124,6 +131,15 @@ export default function Navbar() {
           </Link>
         </li>
         <li>
+          <Link
+            to={pulsarLink.to}
+            className="hover:underline"
+            onClick={() => setOpen(false)}
+          >
+            {pulsarLink.label}
+          </Link>
+        </li>
+        <li>
           <button
             onClick={() => setPgOpen(!pgOpen)}
             className="text-left hover:underline"
@@ -148,4 +164,3 @@ export default function Navbar() {
     </nav>
   );
 }
-

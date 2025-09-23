@@ -30,16 +30,43 @@ const config = {
   measurementId: (import.meta as any).env?.VITE_FIREBASE_MEASUREMENT_ID || undefined,
 };
 
-const app: FirebaseApp = getApps().length ? getApps()[0]! : initializeApp(config);
+let app: FirebaseApp | null = null;
+let auth: Auth | null = null;
+let db: Firestore | null = null;
+let storage: FirebaseStorage | null = null;
 
-// Core SDKs
-const auth: Auth = getAuth(app);
-const db: Firestore = getFirestore(app);
-const storage: FirebaseStorage = getStorage(app);
+try {
+  // Skip initialization if any critical value is missing to avoid runtime crashes.
+  if (config.apiKey && config.authDomain && config.projectId && config.appId) {
+    app = getApps().length ? getApps()[0]! : initializeApp(config);
+    auth = getAuth(app);
+    db = getFirestore(app);
+    storage = getStorage(app);
+  } else {
+    console.warn(
+      "[firebase] Firebase is not configured. Provide the VITE_FIREBASE_* env vars to enable auth & data features."
+    );
+  }
+} catch (error) {
+  console.error("[firebase] Failed to initialise Firebase", error);
+  app = null;
+  auth = null;
+  db = null;
+  storage = null;
+}
+
+const firebaseReady = Boolean(app);
 
 // Optional analytics getter (won’t run on server)
 async function analytics() {
-  if (typeof window === "undefined" || !config.measurementId || !getAnalyticsSafe) return null;
+  if (
+    !firebaseReady ||
+    !app ||
+    typeof window === "undefined" ||
+    !config.measurementId ||
+    !getAnalyticsSafe
+  )
+    return null;
   try {
     const getAnalytics = await getAnalyticsSafe();
     return getAnalytics(app);
@@ -48,4 +75,4 @@ async function analytics() {
   }
 }
 
-export { app, auth, db, storage, analytics };
+export { app, auth, db, storage, analytics, firebaseReady };

@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
 export default function Landing() {
-  const { user, signIn } = useAuth();
+  const { user, signIn, firebaseReady, firebaseError } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -24,6 +24,11 @@ export default function Landing() {
         >
           Sign in with Google
         </button>
+      )}
+      {!firebaseReady && (
+        <p className="text-sm text-red-300 max-w-md text-center">
+          {firebaseError || 'Firebase is not configured. Provide the VITE_FIREBASE_* env vars to enable sign-in.'}
+        </p>
       )}
     </div>
   );
