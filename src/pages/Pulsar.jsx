@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { PULSAR_EDICTS, TOTAL_PULSAR_EDICTS } from '../lib/pulsarCards';
+import { PULSAR_STRATA, TOTAL_PULSAR_STRATA } from '../lib/pulsarStrata';
 
 const CARD_STYLES = {
   'Reach Manipulation': {
@@ -17,12 +18,69 @@ const DEFAULT_CARD_STYLES = {
   chip: 'border-slate-600 bg-slate-800/80 text-slate-200',
 };
 
+const STRATA_STYLES = {
+  Veiled: {
+    card: 'border-indigo-400/70 bg-indigo-500/10 text-indigo-50 shadow-indigo-500/10',
+    chip: 'border-indigo-400/70 bg-indigo-500/20 text-indigo-100',
+  },
+  Vital: {
+    card: 'border-emerald-400/70 bg-emerald-500/10 text-emerald-50 shadow-emerald-500/10',
+    chip: 'border-emerald-400/70 bg-emerald-500/20 text-emerald-100',
+  },
+  Volatile: {
+    card: 'border-rose-400/70 bg-rose-500/10 text-rose-50 shadow-rose-500/10',
+    chip: 'border-rose-400/70 bg-rose-500/20 text-rose-100',
+  },
+  Sublime: {
+    card: 'border-sky-400/70 bg-sky-500/10 text-sky-50 shadow-sky-500/10',
+    chip: 'border-sky-400/70 bg-sky-500/20 text-sky-100',
+  },
+  Static: {
+    card: 'border-slate-500/70 bg-slate-600/20 text-slate-100 shadow-slate-700/20',
+    chip: 'border-slate-500/70 bg-slate-600/40 text-slate-200',
+  },
+  Corrupted: {
+    card: 'border-orange-500/70 bg-orange-500/10 text-orange-50 shadow-orange-600/20',
+    chip: 'border-orange-500/70 bg-orange-500/20 text-orange-100',
+  },
+  Resonant: {
+    card: 'border-amber-400/70 bg-amber-500/10 text-amber-50 shadow-amber-500/10',
+    chip: 'border-amber-400/70 bg-amber-500/20 text-amber-100',
+  },
+  Fractured: {
+    card: 'border-fuchsia-400/70 bg-fuchsia-500/10 text-fuchsia-50 shadow-fuchsia-500/10',
+    chip: 'border-fuchsia-400/70 bg-fuchsia-500/20 text-fuchsia-100',
+  },
+  Void: {
+    card: 'border-stone-500/70 bg-stone-900/70 text-stone-100 shadow-stone-900/30',
+    chip: 'border-stone-500/70 bg-stone-800/80 text-stone-200',
+  },
+  Luminous: {
+    card: 'border-yellow-400/70 bg-yellow-500/10 text-yellow-50 shadow-yellow-500/10',
+    chip: 'border-yellow-400/70 bg-yellow-500/20 text-yellow-100',
+  },
+};
+
+const DEFAULT_STRATA_STYLES = {
+  card: 'border-slate-700 bg-slate-900/70 text-slate-100 shadow-slate-900/30',
+  chip: 'border-slate-600 bg-slate-800/80 text-slate-200',
+};
+
 function getCardClasses(card, variant = 'card') {
   if (!card) {
     return '';
   }
 
   const styles = CARD_STYLES[card.category] ?? DEFAULT_CARD_STYLES;
+  return styles[variant] ?? '';
+}
+
+function getStratumClasses(stratum, variant = 'card') {
+  if (!stratum) {
+    return '';
+  }
+
+  const styles = STRATA_STYLES[stratum.resonance] ?? DEFAULT_STRATA_STYLES;
   return styles[variant] ?? '';
 }
 
@@ -37,8 +95,12 @@ function shuffle(array) {
   return result;
 }
 
-function createDeck() {
+function createEdictDeck() {
   return shuffle(PULSAR_EDICTS.map((card) => ({ ...card })));
+}
+
+function createStrataDeck() {
+  return shuffle(PULSAR_STRATA.map((stratum) => ({ ...stratum })));
 }
 
 function wrapIndex(index) {
@@ -84,17 +146,67 @@ function EdictCard({ card, actionSlot }) {
   );
 }
 
+function StratumCard({ stratum, actionSlot }) {
+  if (!stratum) {
+    return null;
+  }
+
+  return (
+    <div
+      className={`flex h-full flex-col justify-between rounded-3xl border-2 border-slate-700 bg-slate-900/70 p-5 text-slate-100 shadow-lg shadow-slate-950/30 transition hover:-translate-y-1 hover:shadow-2xl ${getStratumClasses(stratum)}`}
+    >
+      <div className="space-y-4">
+        <span
+          className={`inline-flex items-center gap-2 rounded-full border border-slate-600 bg-slate-800/80 px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-slate-300 ${getStratumClasses(stratum, 'chip')}`}
+        >
+          <span>{stratum.icon}</span>
+          {stratum.resonance}
+        </span>
+        <h3 className="text-2xl font-bold tracking-tight text-white">{stratum.name}</h3>
+        {stratum.summary ? (
+          <p className="text-sm leading-relaxed text-slate-200/90">{stratum.summary}</p>
+        ) : null}
+        <div className="space-y-2 text-sm leading-relaxed text-slate-200/90">
+          {stratum.pulseEffect ? (
+            <p>
+              <span className="font-semibold text-white">Pulse:</span> {stratum.pulseEffect}
+            </p>
+          ) : null}
+          {stratum.reachEffect ? (
+            <p>
+              <span className="font-semibold text-white">Reach:</span> {stratum.reachEffect}
+            </p>
+          ) : null}
+          {stratum.bonusEffect ? (
+            <p>
+              <span className="font-semibold text-white">Bonus:</span> {stratum.bonusEffect}
+            </p>
+          ) : null}
+        </div>
+      </div>
+      {actionSlot ? <div className="mt-6 flex flex-wrap gap-2">{actionSlot}</div> : null}
+    </div>
+  );
+}
+
 export default function Pulsar() {
-  const [deck, setDeck] = useState(() => createDeck());
+  const [deck, setDeck] = useState(() => createEdictDeck());
   const [hand, setHand] = useState([]);
   const [discard, setDiscard] = useState([]);
   const [pulseIndex, setPulseIndex] = useState(0);
   const [reachIndex, setReachIndex] = useState(2);
   const [locked, setLocked] = useState(false);
+  const [strataDeck, setStrataDeck] = useState(() => createStrataDeck());
+  const [strataPool, setStrataPool] = useState([]);
+  const [activeStratum, setActiveStratum] = useState(null);
+  const [strataDiscard, setStrataDiscard] = useState([]);
 
   const remaining = deck.length;
   const drawn = hand.length;
   const discarded = discard.length;
+  const strataRemaining = strataDeck.length;
+  const queuedStrata = strataPool.length;
+  const discardedStrata = strataDiscard.length;
 
   const handleDraw = () => {
     setDeck((prevDeck) => {
@@ -134,9 +246,95 @@ export default function Pulsar() {
   };
 
   const resetBoard = () => {
-    setDeck(createDeck());
+    setDeck(createEdictDeck());
     setHand([]);
     setDiscard([]);
+  };
+
+  const drawStratum = () => {
+    setStrataDeck((prevDeck) => {
+      if (!prevDeck.length) {
+        return prevDeck;
+      }
+
+      const [nextCard, ...rest] = prevDeck;
+      setStrataPool((prevPool) => [nextCard, ...prevPool]);
+      return rest;
+    });
+  };
+
+  const resetStrata = () => {
+    setStrataDeck(createStrataDeck());
+    setStrataPool([]);
+    setActiveStratum(null);
+    setStrataDiscard([]);
+  };
+
+  const activateStratum = (name) => {
+    setStrataPool((prevPool) => {
+      const index = prevPool.findIndex((card) => card.name === name);
+      if (index === -1) {
+        return prevPool;
+      }
+
+      const selected = prevPool[index];
+      setActiveStratum((prevActive) => {
+        if (prevActive) {
+          setStrataDiscard((prevDiscard) => [prevActive, ...prevDiscard]);
+        }
+        return selected;
+      });
+
+      return [...prevPool.slice(0, index), ...prevPool.slice(index + 1)];
+    });
+  };
+
+  const discardFromPool = (name) => {
+    setStrataPool((prevPool) => {
+      const index = prevPool.findIndex((card) => card.name === name);
+      if (index === -1) {
+        return prevPool;
+      }
+
+      const card = prevPool[index];
+      setStrataDiscard((prevDiscard) => [card, ...prevDiscard]);
+      return [...prevPool.slice(0, index), ...prevPool.slice(index + 1)];
+    });
+  };
+
+  const discardActiveStratum = () => {
+    setActiveStratum((prevActive) => {
+      if (!prevActive) {
+        return prevActive;
+      }
+
+      setStrataDiscard((prevDiscard) => [prevActive, ...prevDiscard]);
+      return null;
+    });
+  };
+
+  const returnActiveToPool = () => {
+    setActiveStratum((prevActive) => {
+      if (!prevActive) {
+        return prevActive;
+      }
+
+      setStrataPool((prevPool) => [prevActive, ...prevPool]);
+      return null;
+    });
+  };
+
+  const reclaimStratum = (name) => {
+    setStrataDiscard((prevDiscard) => {
+      const index = prevDiscard.findIndex((card) => card.name === name);
+      if (index === -1) {
+        return prevDiscard;
+      }
+
+      const card = prevDiscard[index];
+      setStrataPool((prevPool) => [card, ...prevPool]);
+      return [...prevDiscard.slice(0, index), ...prevDiscard.slice(index + 1)];
+    });
   };
 
   const nudge = (handType, step) => {
@@ -273,6 +471,169 @@ export default function Pulsar() {
               <p className="text-sm text-slate-500">
                 Discarded edicts will gather here. Reclaim any card to immediately return it to
                 your hand.
+              </p>
+            )}
+          </div>
+        </section>
+
+        <section className="rounded-3xl border border-slate-800 bg-slate-900/60 p-8 shadow-lg shadow-slate-900/30">
+          <div className="flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">
+            <div className="space-y-4">
+              <div className="flex flex-wrap items-center gap-3 text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">
+                <span>Total Strata: {TOTAL_PULSAR_STRATA}</span>
+                <span>Deck: {strataRemaining}</span>
+                <span>Active: {activeStratum ? '1' : '0'}</span>
+                <span>Queued: {queuedStrata}</span>
+                <span>Discarded: {discardedStrata}</span>
+              </div>
+              <p className="max-w-md text-sm text-slate-400">
+                Use the Pulse deck to curate the strata your compass will engage with. Draw
+                cards to reveal new strata, then promote one to active to set the stage for
+                your next pulse.
+              </p>
+              <div className="flex flex-wrap gap-3">
+                <button
+                  type="button"
+                  onClick={drawStratum}
+                  disabled={!strataRemaining}
+                  className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold shadow transition ${
+                    strataRemaining
+                      ? 'bg-violet-500 text-slate-950 shadow-violet-500/40 hover:bg-violet-400'
+                      : 'cursor-not-allowed bg-slate-800 text-slate-500'
+                  }`}
+                >
+                  Draw Stratum
+                  <span className="text-xs uppercase tracking-[0.2em]">
+                    {strataRemaining ? `${strataRemaining} left` : 'Empty'}
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  onClick={resetStrata}
+                  className="inline-flex items-center gap-2 rounded-full bg-slate-200 px-4 py-2 text-sm font-semibold text-slate-900 shadow transition hover:bg-white"
+                >
+                  Reset Strata Deck
+                </button>
+              </div>
+            </div>
+
+            <div className="group relative flex h-44 w-32 flex-col items-center justify-center rounded-3xl border-2 border-dashed border-slate-700 bg-slate-900/80 text-center text-base font-semibold text-slate-300 transition hover:border-slate-500">
+              <span className="text-xs uppercase tracking-[0.3em] text-slate-500">Strata Deck</span>
+              <span className="mt-3 text-4xl font-bold text-white">{strataRemaining}</span>
+              <span className="mt-1 text-xs text-slate-500">
+                {strataRemaining === 1 ? 'card remaining' : 'cards remaining'}
+              </span>
+            </div>
+          </div>
+
+          <div className="mt-10 space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-400">Active Stratum</h2>
+              <span className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
+                {activeStratum ? activeStratum.name : 'None selected'}
+              </span>
+            </div>
+            {activeStratum ? (
+              <StratumCard
+                stratum={activeStratum}
+                actionSlot={
+                  <>
+                    <button
+                      type="button"
+                      onClick={returnActiveToPool}
+                      className="rounded-full bg-slate-200 px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-slate-900 transition hover:bg-white"
+                    >
+                      Return to Queue
+                    </button>
+                    <button
+                      type="button"
+                      onClick={discardActiveStratum}
+                      className="rounded-full bg-transparent px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-white/80 transition hover:bg-white/10 hover:text-white"
+                    >
+                      Send to Discard
+                    </button>
+                  </>
+                }
+              />
+            ) : (
+              <p className="text-sm text-slate-500">
+                Draw strata and promote one to active to define what the Pulse is currently
+                resonating with.
+              </p>
+            )}
+          </div>
+
+          <div className="mt-12 space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-400">Queued Strata</h2>
+              <span className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
+                {queuedStrata ? `${queuedStrata} card${queuedStrata === 1 ? '' : 's'}` : 'Empty'}
+              </span>
+            </div>
+            {strataPool.length ? (
+              <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                {strataPool.map((stratum) => (
+                  <StratumCard
+                    key={`pool-${stratum.name}`}
+                    stratum={stratum}
+                    actionSlot={
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => activateStratum(stratum.name)}
+                          className="rounded-full bg-violet-500 px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-slate-950 transition hover:bg-violet-400"
+                        >
+                          Set Active
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => discardFromPool(stratum.name)}
+                          className="rounded-full bg-transparent px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-white/80 transition hover:bg-white/10 hover:text-white"
+                        >
+                          Discard
+                        </button>
+                      </>
+                    }
+                  />
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-slate-500">
+                Draw stratum cards to queue them for selection. Promote any queued stratum
+                when you're ready to pulse through it.
+              </p>
+            )}
+          </div>
+
+          <div className="mt-12 space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-400">Strata Discard</h2>
+              <span className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
+                {discardedStrata ? `${discardedStrata} card${discardedStrata === 1 ? '' : 's'}` : 'Empty'}
+              </span>
+            </div>
+            {strataDiscard.length ? (
+              <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                {strataDiscard.map((stratum) => (
+                  <StratumCard
+                    key={`strata-discard-${stratum.name}`}
+                    stratum={stratum}
+                    actionSlot={
+                      <button
+                        type="button"
+                        onClick={() => reclaimStratum(stratum.name)}
+                        className="rounded-full bg-transparent px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-white/80 transition hover:bg-white/10 hover:text-white"
+                      >
+                        Return to Queue
+                      </button>
+                    }
+                  />
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-slate-500">
+                Discarded strata gather here. Reclaim any of them to make the terrain
+                available for future pulses again.
               </p>
             )}
           </div>
