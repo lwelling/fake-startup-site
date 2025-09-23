@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { PULSAR_EDICTS, TOTAL_PULSAR_EDICTS } from '../lib/pulsarCards';
 import FracturedCircleBoard from '../components/FracturedCircleBoard';
 
@@ -37,10 +37,6 @@ const STRATA_TYPE_STYLES = {
 };
 
 const DEFAULT_STRATA_TYPE_STYLE = 'border-slate-700 bg-gradient-to-br from-slate-900/80 to-slate-800/40 text-slate-100 shadow-slate-900/30';
-
-function createEmptyTimeline() {
-  return [null, null, null];
-}
 
 function getCardClasses(card, variant = 'card') {
   if (!card) {
@@ -81,6 +77,15 @@ function createStrataDeck(size) {
   });
 
   return shuffle(deck);
+}
+
+function createInitialStrataState(size) {
+  const deck = createStrataDeck(size);
+  const [beforeCard, ...restDeck] = deck;
+  return {
+    deck: restDeck,
+    timeline: [beforeCard ?? null, null, null],
+  };
 }
 
 function getStrataTypeClasses(type) {
@@ -149,16 +154,20 @@ function EdictCard({ card, actionSlot }) {
 }
 
 export default function Pulsar() {
+  const initialStrataState = useMemo(
+    () => createInitialStrataState(DEFAULT_STRATA_DECK_SIZE),
+    [],
+  );
   const [deck, setDeck] = useState(() => createEdictDeck());
   const [hand, setHand] = useState([]);
   const [discard, setDiscard] = useState([]);
   const [pulseIndex, setPulseIndex] = useState(0);
-  const [reachIndex, setReachIndex] = useState(2);
-  const [locked, setLocked] = useState(false);
+  const [reachIndex, setReachIndex] = useState(1);
+  const [locked, setLocked] = useState(true);
   const [strataDeckSize, setStrataDeckSize] = useState(DEFAULT_STRATA_DECK_SIZE);
   const [strataDeckSizeInput, setStrataDeckSizeInput] = useState(String(DEFAULT_STRATA_DECK_SIZE));
-  const [strataDeck, setStrataDeck] = useState(() => createStrataDeck(DEFAULT_STRATA_DECK_SIZE));
-  const [strataTimeline, setStrataTimeline] = useState(() => createEmptyTimeline());
+  const [strataDeck, setStrataDeck] = useState(() => initialStrataState.deck);
+  const [strataTimeline, setStrataTimeline] = useState(() => initialStrataState.timeline);
   const [strataDiscard, setStrataDiscard] = useState([]);
   const [discardModalOpen, setDiscardModalOpen] = useState(false);
   const [strataCells, setStrataCells] = useState(createInitialStrataCells);
@@ -245,15 +254,17 @@ export default function Pulsar() {
     );
 
     setStrataDeckSize(normalised);
-    setStrataDeck(createStrataDeck(normalised));
-    setStrataTimeline(createEmptyTimeline());
+    const { deck: nextDeck, timeline } = createInitialStrataState(normalised);
+    setStrataDeck(nextDeck);
+    setStrataTimeline(timeline);
     setStrataDiscard([]);
     setStrataDeckSizeInput(String(normalised));
   };
 
   const resetStrata = () => {
-    setStrataDeck(createStrataDeck(strataDeckSize));
-    setStrataTimeline(createEmptyTimeline());
+    const { deck: nextDeck, timeline } = createInitialStrataState(strataDeckSize);
+    setStrataDeck(nextDeck);
+    setStrataTimeline(timeline);
     setStrataDiscard([]);
     setStrataDeckSizeInput(String(strataDeckSize));
     setStrataCells(createInitialStrataCells());
@@ -506,21 +517,20 @@ export default function Pulsar() {
       setReachIndex((prev) => wrapIndex(prev + 1));
     } else {
       setPulseIndex((prev) => wrapIndex(prev + 1));
-      setReachIndex((prev) => wrapIndex(prev + 1));
     }
   };
 
   const resolveRound = () => {
     if (gameStatus !== 'in-progress') return;
     setDiscardModalOpen(false);
-    const preContext = { nowCard: strataTimeline[1], direction: DIAL_LABELS[pulseIndex] };
+    const preContext = { nowCard: strataTimeline[0], direction: DIAL_LABELS[pulseIndex] };
     executeQueuedEdicts('pre', preContext);
     const nowCard = advancePulseDeck();
     applyPulseToStratum(nowCard);
-    applyDecayPhase();
-    applyEscalationPhase();
     const postContext = { nowCard, direction: DIAL_LABELS[pulseIndex] };
     executeQueuedEdicts('post', postContext);
+    applyDecayPhase();
+    applyEscalationPhase();
     rotateCompassAfterRound();
     logEvent('Round resolved.');
   };
