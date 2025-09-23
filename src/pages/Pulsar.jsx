@@ -1,6 +1,33 @@
 import { useState } from 'react';
 
 const CARD_TYPES = ['Aether', 'Mist', 'Echo', 'Bloom'];
+
+const CARD_STYLES = {
+  Bloom: {
+    card: 'border-emerald-400 bg-emerald-500/20 text-emerald-100',
+    chip: 'border-emerald-400/70 bg-emerald-500/10 text-emerald-200',
+  },
+  Mist: {
+    card: 'border-sky-400 bg-sky-500/20 text-sky-100',
+    chip: 'border-sky-400/70 bg-sky-500/10 text-sky-200',
+  },
+  Echo: {
+    card: 'border-slate-200 bg-white text-slate-900',
+    chip: 'border-slate-200 bg-white/80 text-slate-900',
+  },
+  Aether: {
+    card: 'border-violet-400 bg-violet-500/20 text-violet-100',
+    chip: 'border-violet-400/70 bg-violet-500/10 text-violet-200',
+  },
+};
+
+function getCardClasses(card, variant = 'card') {
+  if (!card) {
+    return '';
+  }
+
+  return CARD_STYLES[card]?.[variant] ?? '';
+}
 const DIAL_LABELS = ['Highest', 'Even', 'Lowest', 'Odd'];
 
 function shuffle(array) {
@@ -46,16 +73,17 @@ function CompassHand({ angle, colorClass, label }) {
 }
 
 function TimelineCard({ label, value }) {
+  const filledClasses = `border-2 ${getCardClasses(value) || 'border-slate-500 bg-slate-800 text-white'}`;
+  const emptyClasses = 'border-2 border-dashed border-slate-600 bg-slate-900/40 text-slate-500';
+
   return (
     <div className="flex flex-col items-center gap-3">
       <span className="text-sm uppercase tracking-widest text-slate-400">
         {label}
       </span>
       <div
-        className={`flex h-32 w-24 items-center justify-center rounded-2xl border-2 text-lg font-semibold transition-colors ${
-          value
-            ? 'border-slate-500 bg-slate-800 text-white'
-            : 'border-dashed border-slate-600 bg-slate-900/40 text-slate-500'
+        className={`flex h-32 w-24 items-center justify-center rounded-2xl text-lg font-semibold transition-colors ${
+          value ? filledClasses : emptyClasses
         }`}
       >
         {value || 'Empty'}
@@ -192,7 +220,9 @@ export default function Pulsar() {
                 discard.map((card, index) => (
                   <div
                     key={`${card}-${index}`}
-                    className="rounded-2xl border border-slate-700 bg-slate-900/70 px-4 py-2 text-sm font-medium text-slate-200"
+                    className={`rounded-2xl border px-4 py-2 text-sm font-semibold ${
+                      getCardClasses(card, 'chip') || 'border-slate-700 bg-slate-900/70 text-slate-200'
+                    }`}
                   >
                     {card}
                   </div>
