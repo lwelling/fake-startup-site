@@ -116,13 +116,19 @@ function wrapIndex(index) {
 }
 
 function CompassHand({ angle, colorClass, label }) {
+  const handDesignation = label === 'Pulse' ? 'Pulse' : 'Control';
+
   return (
-    <div className="absolute top-1/2 left-1/2">
+    <div className="absolute left-1/2 top-1/2">
       <div
-        className="origin-bottom flex flex-col items-center"
+        className="flex origin-bottom flex-col items-center"
         style={{ transform: `translate(-50%, -100%) rotate(${angle}deg)` }}
       >
-        <div className={`w-1 h-24 rounded-full ${colorClass}`}></div>
+        <div className={`relative flex h-24 w-2 items-center justify-center rounded-full ${colorClass}`}>
+          <span className="pointer-events-none select-none text-[10px] font-semibold uppercase tracking-[0.35em] text-slate-950 [text-orientation:upright] [writing-mode:vertical-rl]">
+            {handDesignation}
+          </span>
+        </div>
         <div
           className="mt-2 rounded-md bg-white/90 px-2 py-1 text-xs font-semibold text-slate-800 shadow"
           style={{ transform: `rotate(${-angle}deg)` }}
@@ -643,19 +649,25 @@ export default function Pulsar() {
               <div className="grid gap-3 rounded-2xl border border-slate-800 bg-slate-900/60 p-4 sm:grid-cols-2">
                 <div className="space-y-1">
                   <span className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">Info Track</span>
-                  <div className="flex items-center gap-2">
-                    <span className="rounded-full bg-white/10 px-3 py-1 text-sm font-semibold text-white">
-                      {infoTrack} / 10
+                  <div className="flex items-center gap-3">
+                    <span aria-hidden className="text-lg font-semibold text-slate-500">−</span>
+                    <span className="flex h-12 w-12 items-center justify-center rounded-full border border-slate-700 bg-white text-base font-bold text-slate-900 shadow-inner shadow-black/20">
+                      {infoTrack}
                     </span>
+                    <span aria-hidden className="text-lg font-semibold text-slate-500">+</span>
                   </div>
+                  <span className="text-[11px] uppercase tracking-[0.3em] text-slate-500">of 10</span>
                 </div>
                 <div className="space-y-1">
                   <span className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">Corruption Track</span>
-                  <div className="flex items-center gap-2">
-                    <span className="rounded-full bg-red-500/20 px-3 py-1 text-sm font-semibold text-red-100">
-                      {corruptionTrack} / 10
+                  <div className="flex items-center gap-3">
+                    <span aria-hidden className="text-lg font-semibold text-slate-500">−</span>
+                    <span className="flex h-12 w-12 items-center justify-center rounded-full border border-slate-700 bg-slate-950 text-base font-bold text-white shadow-inner shadow-black/40">
+                      {corruptionTrack}
                     </span>
+                    <span aria-hidden className="text-lg font-semibold text-slate-500">+</span>
                   </div>
+                  <span className="text-[11px] uppercase tracking-[0.3em] text-slate-500">of 10</span>
                 </div>
                 <div className="flex flex-col items-stretch gap-3 sm:col-span-2 sm:flex-row sm:items-center sm:gap-4">
                   <button
