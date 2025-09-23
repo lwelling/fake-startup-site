@@ -1,0 +1,154 @@
+export const PULSAR_EDICTS = [
+  {
+    category: 'Reach Manipulation',
+    name: 'Compass Shift',
+    effect: 'Rotate the Compass Hand one or two steps in a direction of your choice.',
+  },
+  {
+    category: 'Reach Manipulation',
+    name: 'Mist Veil',
+    effect: 'Temporarily change any Stratum to Mist for this round.',
+  },
+  {
+    category: 'Reach Manipulation',
+    name: 'Bend the Celestial Axis',
+    effect: 'Rotate both Pulse and Control Hands counterclockwise this round.',
+  },
+  {
+    category: 'Reach Manipulation',
+    name: 'Whisper Through the Ether',
+    effect: "Change one Stratum's type to any other until end of round.",
+  },
+  {
+    category: 'Reach Manipulation',
+    name: 'Axis Realignment',
+    effect: 'Swap the positions of the Pulse Hand and Control Hand.',
+  },
+  {
+    category: 'Reach Manipulation',
+    name: 'Fractured Orbit',
+    effect: 'Pulse Hand skips its next rotation step.',
+  },
+  {
+    category: 'Reach Manipulation',
+    name: 'Echoed Reach',
+    effect: 'Control Hand affects both its own slot and the opposite slot this round.',
+  },
+  {
+    category: 'Reach Manipulation',
+    name: 'Pulse Drift',
+    effect: 'Move the Pulse Hand one step in any direction, ignoring normal rotation.',
+  },
+  {
+    category: 'Reach Manipulation',
+    name: 'Celestial Alignment',
+    effect: 'If Pulse and Control Hands overlap, double the Info added this round.',
+  },
+  {
+    category: 'Reach Manipulation',
+    name: 'Orbit Breaker',
+    effect: 'Reverse the direction of Compass rotation until end of round.',
+  },
+  {
+    category: 'Reach Manipulation',
+    name: 'Time Echo',
+    effect: 'Repeat the last action performed by the Pulse Hand.',
+  },
+  {
+    category: 'Reach Manipulation',
+    name: 'Dimensional Fold',
+    effect: 'Pulse Hand targets two strata of the same type this round.',
+  },
+  {
+    category: 'Reach Manipulation',
+    name: 'Stellar Shift',
+    effect: 'Control Hand may target the Before slot instead of Now.',
+  },
+  {
+    category: 'Reach Manipulation',
+    name: 'Gravity Well',
+    effect: 'Pull the Pulse Hand and Control Hand to the same slot until next round.',
+  },
+  {
+    category: 'Reach Manipulation',
+    name: 'Dream Sync',
+    effect: 'Link Pulse and Control Hands together for one round.',
+  },
+  {
+    category: 'Board Manipulation',
+    name: 'Info Absorb',
+    effect: 'Remove 1 Info from the Now Stratum and add it to your Info Pool.',
+  },
+  {
+    category: 'Board Manipulation',
+    name: 'Purge Corruption',
+    effect: 'Remove 1 Corruption from any Stratum.',
+  },
+  {
+    category: 'Board Manipulation',
+    name: 'Harvest Dreams',
+    effect: 'Absorb all Info from the targeted Stratum into your Info Pool.',
+  },
+  {
+    category: 'Board Manipulation',
+    name: 'Cleanse the Nightfall',
+    effect: 'Restore 1 Stratum by removing 1 Corruption and preventing decay this round.',
+  },
+  {
+    category: 'Board Manipulation',
+    name: 'Memory Anchor',
+    effect: 'Prevent 1 Info in the Now Stratum from decaying this round.',
+  },
+  {
+    category: 'Board Manipulation',
+    name: 'Dream Reclaim',
+    effect: 'Choose 1 Edict in your discard and return it to your hand.',
+  },
+  {
+    category: 'Board Manipulation',
+    name: 'Corruption Burn',
+    effect: 'Convert 1 Corruption in the Now Stratum into Info.',
+  },
+  {
+    category: 'Board Manipulation',
+    name: 'Truth Surge',
+    effect: 'Add 2 Info to the Now Stratum; one of them is permanent (does not decay).',
+  },
+  {
+    category: 'Board Manipulation',
+    name: 'Silent Echo',
+    effect: 'Prevent the Pulse effect this round on the Now Stratum.',
+  },
+  {
+    category: 'Board Manipulation',
+    name: 'Dream Cascade',
+    effect: 'Shift 1 Info from the Now Stratum into the Before slot Stratum.',
+  },
+  {
+    category: 'Board Manipulation',
+    name: 'Reverie Bind',
+    effect: 'Lock the After slot so its card does not leave next round.',
+  },
+  {
+    category: 'Board Manipulation',
+    name: 'Lucid Bloom',
+    effect: 'If the Now Stratum is Bloom, absorb all Info there directly to your track.',
+  },
+  {
+    category: 'Board Manipulation',
+    name: 'Nightmare Banish',
+    effect: 'If the Now Stratum has 2+ Corruption, remove all but 1.',
+  },
+  {
+    category: 'Board Manipulation',
+    name: 'Aether Channel',
+    effect: 'If the Now Stratum is Aether, convert all Info there into permanent Info.',
+  },
+  {
+    category: 'Board Manipulation',
+    name: 'Mist Shroud',
+    effect: 'If the Now Stratum is Mist, prevent 1 Corruption from escalating this round.',
+  },
+];
+
+export const TOTAL_PULSAR_EDICTS = PULSAR_EDICTS.length;
