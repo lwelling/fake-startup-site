@@ -16,6 +16,7 @@ import Life from './pages/Life.jsx';
 import Note from './pages/Note.jsx';
 import Pipeline from './pages/Pipeline.jsx';
 import PipelineDetail from './pages/PipelineDetail.jsx';
+import Pulsar from './pages/Pulsar.jsx';
 import { useAuth } from './context/AuthContext';
 
 function TitleUpdater() {
@@ -31,6 +32,7 @@ function TitleUpdater() {
       '/life': 'lkw.lol - Life',
       '/note': 'lkw.lol - Notes',
       '/pipeline': 'lkw.lol - Pipeline',
+      '/pulsar': 'lkw.lol - Pulsar',
     };
     if (location.pathname.startsWith('/pipeline')) {
       document.title = 'lkw.lol - Pipeline';
@@ -91,6 +93,7 @@ export default function App() {
           path="/pipeline/:stockNumber"
           element={user ? <PipelineDetail /> : <Navigate to="/" replace />}
         />
+        <Route path="/pulsar" element={<Pulsar />} />
       </Routes>
     </BrowserRouter>
   );
