@@ -110,22 +110,6 @@ function createInitialStrataCells() {
   );
 }
 
-function calculateStrataTotals(cells) {
-  return (cells ?? []).reduce((acc, cell) => {
-    if (!cell) {
-      return acc;
-    }
-
-    if (!acc[cell.type]) {
-      acc[cell.type] = { info: 0, corruption: 0 };
-    }
-
-    acc[cell.type].info += cell.info ?? 0;
-    acc[cell.type].corruption += cell.corruption ?? 0;
-    return acc;
-  }, {});
-}
-
 function wrapIndex(index) {
   const size = DIAL_LABELS.length;
   return (index + size) % size;
@@ -141,7 +125,7 @@ function CompassHand({ angle, colorClass, label }) {
         style={{ transform: `translate(-50%, -100%) rotate(${angle}deg)` }}
       >
         <div className={`relative flex h-24 w-2 items-center justify-center rounded-full ${colorClass}`}>
-          <span className="pointer-events-none select-none text-[11px] font-semibold uppercase tracking-[0.32em] text-white drop-shadow [text-orientation:upright] [writing-mode:vertical-rl]">
+          <span className="pointer-events-none select-none text-[10px] font-semibold uppercase tracking-[0.35em] text-slate-950 [text-orientation:upright] [writing-mode:vertical-rl]">
             {handDesignation}
           </span>
         </div>
@@ -150,32 +134,6 @@ function CompassHand({ angle, colorClass, label }) {
           style={{ transform: `rotate(${-angle}deg)` }}
         >
           {label}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function StrataCard({ type, info = 0, corruption = 0, className = '' }) {
-  const label = type ?? 'Stratum';
-
-  return (
-    <div
-      className={`flex flex-col justify-between rounded-2xl border-2 px-4 py-5 text-center shadow-lg shadow-black/20 ${getStrataTypeClasses(type)} ${className}`}
-    >
-      <span className="text-xl font-semibold uppercase tracking-[0.4em] text-white">{label}</span>
-      <div className="mt-4 grid grid-cols-2 gap-3 text-[10px] font-semibold uppercase tracking-[0.28em] text-white/70">
-        <div className="space-y-1">
-          <span className="block text-xs text-slate-100/80">Info</span>
-          <span className="flex items-center justify-center rounded-full border border-white/40 bg-white/15 px-3 py-1 text-base text-white shadow-inner shadow-black/30">
-            {info}
-          </span>
-        </div>
-        <div className="space-y-1">
-          <span className="block text-xs text-slate-100/80">Corruption</span>
-          <span className="flex items-center justify-center rounded-full border border-white/30 bg-black/30 px-3 py-1 text-base text-white shadow-inner shadow-black/30">
-            {corruption}
-          </span>
         </div>
       </div>
     </div>
@@ -231,11 +189,6 @@ export default function Pulsar() {
   const discarded = discard.length;
   const strataRemaining = strataDeck.length;
   const strataDiscarded = strataDiscard.length;
-
-  const strataTotals = useMemo(
-    () => calculateStrataTotals(strataCells),
-    [strataCells],
-  );
 
   const strataBoard = [
     { key: 'before', label: 'Before', card: strataTimeline[0] },
@@ -747,29 +700,23 @@ export default function Pulsar() {
                   <span>{strataBoard.some((slot) => slot.card) ? 'Live spread' : 'Empty'}</span>
                 </div>
                 <div className="grid gap-4 md:grid-cols-3">
-                  {strataBoard.map(({ key, label, card }) => {
-                    const totals = card ? strataTotals[card.type] ?? { info: 0, corruption: 0 } : null;
-                    return (
-                      <div key={key} className="rounded-3xl border border-slate-800 bg-slate-900/50 p-4">
-                        <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
-                          <span>{label}</span>
-                          <span>{card ? 'Revealed' : 'Empty'}</span>
-                        </div>
-                        {card ? (
-                          <StrataCard
-                            type={card.type}
-                            info={totals?.info ?? 0}
-                            corruption={totals?.corruption ?? 0}
-                            className="mt-4 h-32"
-                          />
-                        ) : (
-                          <div className="mt-4 flex h-32 items-center justify-center rounded-2xl border border-dashed border-slate-700 text-sm text-slate-500">
-                            Awaiting card
-                          </div>
-                        )}
+                  {strataBoard.map(({ key, label, card }) => (
+                    <div key={key} className="rounded-3xl border border-slate-800 bg-slate-900/50 p-4">
+                      <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
+                        <span>{label}</span>
+                        <span>{card ? 'Revealed' : 'Empty'}</span>
                       </div>
-                    );
-                  })}
+                      {card ? (
+                        <div className={`mt-4 flex h-32 flex-col items-center justify-center rounded-2xl border-2 px-4 text-center ${getStrataTypeClasses(card.type)}`}>
+                          <span className="text-xl font-semibold uppercase tracking-[0.4em]">{card.type}</span>
+                        </div>
+                      ) : (
+                        <div className="mt-4 flex h-32 items-center justify-center rounded-2xl border border-dashed border-slate-700 text-sm text-slate-500">
+                          Awaiting card
+                        </div>
+                      )}
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
@@ -1026,18 +973,14 @@ export default function Pulsar() {
             </div>
             {strataDiscard.length ? (
               <div className="mt-6 grid gap-4 sm:grid-cols-2">
-                {strataDiscard.map((card) => {
-                  const totals = strataTotals[card.type] ?? { info: 0, corruption: 0 };
-                  return (
-                    <StrataCard
-                      key={card.id}
-                      type={card.type}
-                      info={totals.info}
-                      corruption={totals.corruption}
-                      className="h-32"
-                    />
-                  );
-                })}
+                {strataDiscard.map((card) => (
+                  <div
+                    key={card.id}
+                    className={`rounded-2xl border-2 px-4 py-6 text-center text-sm font-semibold uppercase tracking-[0.3em] ${getStrataTypeClasses(card.type)}`}
+                  >
+                    {card.type}
+                  </div>
+                ))}
               </div>
             ) : (
               <p className="mt-6 text-sm text-slate-300">The discard pile is empty.</p>
