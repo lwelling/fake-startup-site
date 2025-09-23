@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { PULSAR_EDICTS, TOTAL_PULSAR_EDICTS } from '../lib/pulsarCards';
 import FracturedCircleBoard from '../components/FracturedCircleBoard';
 
-const STRATA_GRID_LAYOUT = ['Mist', 'Echo', 'Bloom', 'Aether', 'Mist', 'Echo', null, 'Bloom', 'Aether'];
+const STRATA_GRID_LAYOUT = ['Mist', 'Echo', 'Bloom', 'Aether', 'Echo', 'Mist', null, 'Bloom', 'Aether'];
 
 const COMPASS_TARGET_MAP = {
   Highest: [0, 1],
@@ -567,20 +567,20 @@ export default function Pulsar() {
   }, [infoTrack, corruptionTrack, gameStatus]);
 
   return (
-    <div className="min-h-screen bg-slate-950 py-12 px-4 text-slate-100">
-      <div className="mx-auto flex max-w-5xl flex-col gap-12">
+    <div className="min-h-screen bg-slate-950 px-3 py-8 text-slate-100 sm:px-6 sm:py-12 lg:px-8">
+      <div className="mx-auto flex w-full max-w-6xl flex-col gap-10 sm:gap-12">
         <header className="space-y-4 text-center">
-          <h1 className="text-4xl font-bold tracking-tight text-white">Pulsar</h1>
-          <p className="text-lg text-slate-300">
+          <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">Pulsar</h1>
+          <p className="mx-auto max-w-2xl text-base text-slate-300 sm:text-lg">
             Shuffle the dream edicts, draw them into your hand, and let the compass guide
             your next move.
           </p>
         </header>
 
-        <section className="grid gap-6 rounded-3xl border border-slate-800 bg-slate-900/60 p-6 shadow-lg shadow-slate-900/30 xl:grid-cols-[minmax(0,2fr)_minmax(280px,1fr)] xl:items-start">
+        <section className="grid gap-6 rounded-3xl border border-slate-800 bg-slate-900/60 p-4 shadow-lg shadow-slate-900/30 sm:p-6 xl:grid-cols-[minmax(0,2fr)_minmax(280px,1fr)] xl:items-start">
           <div className="flex flex-col gap-6">
-            <div className="rounded-3xl border border-slate-800 bg-slate-900/70 p-6">
-              <div className="flex items-center justify-between">
+            <div className="rounded-3xl border border-slate-800 bg-slate-900/70 p-4 sm:p-6">
+              <div className="flex flex-col gap-2 text-center sm:flex-row sm:items-center sm:justify-between sm:text-left">
                 <h2 className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-400">Strata Control Grid</h2>
                 <span className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">Pairs Aligned</span>
               </div>
@@ -593,13 +593,13 @@ export default function Pulsar() {
               </div>
             </div>
 
-            <div className="rounded-3xl border border-slate-800 bg-slate-900/70 p-6 space-y-6">
-              <div className="flex flex-wrap items-center gap-3 text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">
+            <div className="rounded-3xl border border-slate-800 bg-slate-900/70 space-y-5 p-4 sm:space-y-6 sm:p-6">
+              <div className="flex flex-wrap items-center justify-center gap-3 text-xs font-semibold uppercase tracking-[0.3em] text-slate-400 sm:justify-start">
                 <span>Deck Size: {strataDeckSize}</span>
                 <span>Remaining: {strataRemaining}</span>
                 <span>Discarded: {strataDiscarded}</span>
               </div>
-              <div className="flex flex-wrap items-end gap-4">
+              <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-end">
                 <label className="flex flex-col">
                   <span className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">Deck Size</span>
                   <input
@@ -615,7 +615,7 @@ export default function Pulsar() {
                   />
                   <span className="mt-1 text-[11px] text-slate-500">Multiples of 4, 4-40.</span>
                 </label>
-                <div className="flex flex-wrap gap-3">
+                <div className="flex flex-wrap justify-center gap-3 sm:justify-start">
                   <button
                     type="button"
                     onClick={drawStrataCard}
@@ -657,7 +657,7 @@ export default function Pulsar() {
                     </span>
                   </div>
                 </div>
-                <div className="flex items-center gap-3 sm:col-span-2">
+                <div className="flex flex-col items-stretch gap-3 sm:col-span-2 sm:flex-row sm:items-center sm:gap-4">
                   <button
                     type="button"
                     onClick={resolveRound}
@@ -677,13 +677,13 @@ export default function Pulsar() {
                   >
                     Bank Info (Now)
                   </button>
-                  <span className="text-xs uppercase tracking-[0.3em] text-slate-400">
+                  <span className="text-center text-xs uppercase tracking-[0.3em] text-slate-400 sm:ml-auto sm:text-right">
                     Status: {gameStatus === 'in-progress' ? 'In Progress' : gameStatus === 'victory' ? 'Victory' : 'Defeat'}
                   </span>
                 </div>
               </div>
               <div className="space-y-4">
-                <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
+                <div className="flex flex-col gap-2 text-center text-xs font-semibold uppercase tracking-[0.3em] text-slate-500 sm:flex-row sm:items-center sm:justify-between sm:text-left">
                   <span>Timeline</span>
                   <span>{strataBoard.some((slot) => slot.card) ? 'Live spread' : 'Empty'}</span>
                 </div>
@@ -711,11 +711,11 @@ export default function Pulsar() {
           </div>
 
           <div className="flex flex-col gap-6">
-            <div className="rounded-3xl border border-slate-800 bg-slate-900/70 p-6">
+            <div className="rounded-3xl border border-slate-800 bg-slate-900/70 p-4 sm:p-6">
               <h2 className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-400">Pulse Progression</h2>
               <p className="mt-2 text-xs text-slate-400">Set your compass, lock the hands, and step the pulse through the shattered dial.</p>
-              <div className="mt-6 flex justify-center">
-                <div className="relative h-72 w-72">
+              <div className="mt-6 flex justify-center sm:mt-8">
+                <div className="relative h-56 w-56 sm:h-64 sm:w-64 lg:h-72 lg:w-72">
                   <div className="relative h-full w-full rounded-full border-2 border-slate-700 bg-slate-950">
                     <div className="absolute left-1/2 top-4 -translate-x-1/2 text-xs font-semibold text-slate-200">Highest</div>
                     <div className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-semibold text-slate-200">Even</div>
@@ -741,7 +741,7 @@ export default function Pulsar() {
                 <div className="space-y-2 rounded-2xl border border-slate-800 bg-slate-900/60 p-4">
                   <h3 className="text-sm font-semibold text-white">Pulse Hand</h3>
                   <p className="text-xs text-slate-400">{locked ? 'Hands move together while locked.' : 'Adjust the Pulse hand independently.'}</p>
-                  <div className="flex items-center gap-3">
+                  <div className="flex flex-wrap items-center justify-between gap-3 sm:justify-start">
                     <button type="button" onClick={() => nudge('pulse', -1)} className="rounded-full bg-slate-800 px-3 py-2 text-sm font-semibold text-slate-200 transition hover:bg-slate-700">◀</button>
                     <span className="flex-1 text-center text-sm font-semibold text-slate-200">Pointing to {DIAL_LABELS[pulseIndex]}</span>
                     <button type="button" onClick={() => nudge('pulse', 1)} className="rounded-full bg-slate-800 px-3 py-2 text-sm font-semibold text-slate-200 transition hover:bg-slate-700">▶</button>
@@ -750,7 +750,7 @@ export default function Pulsar() {
                 <div className="space-y-2 rounded-2xl border border-slate-800 bg-slate-900/60 p-4">
                   <h3 className="text-sm font-semibold text-white">Reach Hand</h3>
                   <p className="text-xs text-slate-400">{locked ? 'Hands move together while locked.' : 'Adjust the Reach hand independently.'}</p>
-                  <div className="flex items-center gap-3">
+                  <div className="flex flex-wrap items-center justify-between gap-3 sm:justify-start">
                     <button type="button" onClick={() => nudge('reach', -1)} className="rounded-full bg-slate-800 px-3 py-2 text-sm font-semibold text-slate-200 transition hover:bg-slate-700">◀</button>
                     <span className="flex-1 text-center text-sm font-semibold text-slate-200">Pointing to {DIAL_LABELS[reachIndex]}</span>
                     <button type="button" onClick={() => nudge('reach', 1)} className="rounded-full bg-slate-800 px-3 py-2 text-sm font-semibold text-slate-200 transition hover:bg-slate-700">▶</button>
@@ -759,8 +759,8 @@ export default function Pulsar() {
               </div>
             </div>
 
-            <div className="rounded-3xl border border-slate-800 bg-slate-900/70 p-6">
-              <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
+            <div className="rounded-3xl border border-slate-800 bg-slate-900/70 p-4 sm:p-6">
+              <div className="flex flex-col gap-2 text-center text-xs font-semibold uppercase tracking-[0.3em] text-slate-500 sm:flex-row sm:items-center sm:justify-between sm:text-left">
                 <span>Discard Pile</span>
                 <span>{strataDiscarded ? `${strataDiscarded} card${strataDiscarded === 1 ? '' : 's'}` : 'Empty'}</span>
               </div>
@@ -780,8 +780,8 @@ export default function Pulsar() {
           </div>
         </section>
 
-        <section className="rounded-3xl border border-slate-800 bg-slate-900/60 p-6 shadow-lg shadow-slate-900/30">
-          <div className="flex items-center justify-between">
+        <section className="rounded-3xl border border-slate-800 bg-slate-900/60 p-4 shadow-lg shadow-slate-900/30 sm:p-6">
+          <div className="flex flex-col gap-2 text-center sm:flex-row sm:items-center sm:justify-between sm:text-left">
             <h2 className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-400">Round Log</h2>
             <button
               type="button"
@@ -800,20 +800,20 @@ export default function Pulsar() {
               ))}
             </ul>
           ) : (
-            <p className="mt-4 text-xs text-slate-500">No events logged yet.</p>
+            <p className="mt-4 text-center text-xs text-slate-500 sm:text-left">No events logged yet.</p>
           )}
         </section>
-        <section className="grid gap-6 rounded-3xl border border-slate-800 bg-slate-900/60 p-8 shadow-lg shadow-slate-900/30 xl:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] xl:items-start">
-          <div className="space-y-6">
-            <div className="flex flex-wrap items-center gap-3 text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">
+        <section className="grid gap-6 rounded-3xl border border-slate-800 bg-slate-900/60 p-4 shadow-lg shadow-slate-900/30 sm:p-6 lg:p-8 xl:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] xl:items-start">
+          <div className="space-y-5 sm:space-y-6">
+            <div className="flex flex-wrap items-center justify-center gap-3 text-xs font-semibold uppercase tracking-[0.3em] text-slate-400 sm:justify-start">
               <span>Total Cards: {TOTAL_PULSAR_EDICTS}</span>
               <span>In Hand: {drawn}</span>
               <span>Discarded: {discarded}</span>
             </div>
-            <p className="max-w-md text-sm text-slate-400">
+            <p className="mx-auto max-w-md text-center text-sm text-slate-400 sm:mx-0 sm:text-left">
               The deck is shuffled face down. Draw edicts into your hand, send them to discard, or reclaim them as your strategy shifts.
             </p>
-            <div className="flex flex-wrap gap-3">
+            <div className="flex flex-wrap justify-center gap-3 sm:justify-start">
               <button
                 type="button"
                 onClick={handleDraw}
@@ -839,9 +839,9 @@ export default function Pulsar() {
             </div>
           </div>
 
-          <div className="space-y-10">
-            <div className="space-y-5">
-              <div className="flex items-center justify-between">
+          <div className="space-y-8 sm:space-y-10">
+            <div className="space-y-4 sm:space-y-5">
+              <div className="flex flex-col gap-2 text-center sm:flex-row sm:items-center sm:justify-between sm:text-left">
                 <h2 className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-400">Hand</h2>
                 <span className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
                   {drawn ? `${drawn} card${drawn === 1 ? '' : 's'}` : 'Empty'}
@@ -850,59 +850,59 @@ export default function Pulsar() {
               {hand.length ? (
                 <div className="grid gap-4 sm:grid-cols-2">
                   {hand.map((card) => {
-                  const isQueuedPre = queuedPreEdicts.includes(card.name);
-                  const isQueuedPost = queuedPostEdicts.includes(card.name);
-                  return (
-                    <EdictCard
-                      key={card.name}
-                      card={card}
-                      actionSlot={
-                        <div className="flex flex-wrap gap-2">
-                          {card.timing === 'pre' ? (
+                    const isQueuedPre = queuedPreEdicts.includes(card.name);
+                    const isQueuedPost = queuedPostEdicts.includes(card.name);
+                    return (
+                      <EdictCard
+                        key={card.name}
+                        card={card}
+                        actionSlot={
+                          <div className="flex flex-wrap justify-center gap-2 sm:justify-start">
+                            {card.timing === 'pre' ? (
+                              <button
+                                type="button"
+                                onClick={() => toggleEdictQueue(card, 'pre')}
+                                className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] transition ${
+                                  isQueuedPre
+                                    ? 'bg-emerald-500/20 text-emerald-200 border border-emerald-400/50'
+                                    : 'bg-transparent text-white/80 border border-white/20 hover:bg-white/10'
+                                }`}
+                              >
+                                {isQueuedPre ? 'Queued →P' : 'Queue →P'}
+                              </button>
+                            ) : card.timing === 'post' ? (
+                              <button
+                                type="button"
+                                onClick={() => toggleEdictQueue(card, 'post')}
+                                className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] transition ${
+                                  isQueuedPost
+                                    ? 'bg-indigo-500/20 text-indigo-200 border border-indigo-400/50'
+                                    : 'bg-transparent text-white/80 border border-white/20 hover:bg-white/10'
+                                }`}
+                              >
+                                {isQueuedPost ? 'Queued P→' : 'Queue P→'}
+                              </button>
+                            ) : null}
                             <button
                               type="button"
-                              onClick={() => toggleEdictQueue(card, 'pre')}
-                              className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] transition ${
-                                isQueuedPre
-                                  ? 'bg-emerald-500/20 text-emerald-200 border border-emerald-400/50'
-                                  : 'bg-transparent text-white/80 border border-white/20 hover:bg-white/10'
-                              }`}
+                              onClick={() => handleDiscard(card.name)}
+                              className="rounded-full bg-transparent px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-white/80 transition hover:bg-white/10 hover:text-white"
                             >
-                              {isQueuedPre ? 'Queued →P' : 'Queue →P'}
+                              Send to Discard
                             </button>
-                          ) : card.timing === 'post' ? (
-                            <button
-                              type="button"
-                              onClick={() => toggleEdictQueue(card, 'post')}
-                              className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] transition ${
-                                isQueuedPost
-                                  ? 'bg-indigo-500/20 text-indigo-200 border border-indigo-400/50'
-                                  : 'bg-transparent text-white/80 border border-white/20 hover:bg-white/10'
-                              }`}
-                            >
-                              {isQueuedPost ? 'Queued P→' : 'Queue P→'}
-                            </button>
-                          ) : null}
-                          <button
-                            type="button"
-                            onClick={() => handleDiscard(card.name)}
-                            className="rounded-full bg-transparent px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-white/80 transition hover:bg-white/10 hover:text-white"
-                          >
-                            Send to Discard
-                          </button>
-                        </div>
-                      }
-                    />
-                  );
-                })}
+                          </div>
+                        }
+                      />
+                    );
+                  })}
                 </div>
               ) : (
-                <p className="text-sm text-slate-500">Draw cards from the deck to fill your hand. Each edict will appear here ready for use.</p>
+                <p className="text-center text-sm text-slate-500 sm:text-left">Draw cards from the deck to fill your hand. Each edict will appear here ready for use.</p>
               )}
             </div>
 
-            <div className="space-y-5">
-              <div className="flex items-center justify-between">
+            <div className="space-y-4 sm:space-y-5">
+              <div className="flex flex-col gap-2 text-center sm:flex-row sm:items-center sm:justify-between sm:text-left">
                 <h2 className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-400">Discard Pile</h2>
                 <span className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
                   {discarded ? `${discarded} card${discarded === 1 ? '' : 's'}` : 'Empty'}
@@ -927,7 +927,7 @@ export default function Pulsar() {
                   ))}
                 </div>
               ) : (
-                <p className="text-sm text-slate-500">Discarded edicts will gather here. Reclaim any card to immediately return it to your hand.</p>
+                <p className="text-center text-sm text-slate-500 sm:text-left">Discarded edicts will gather here. Reclaim any card to immediately return it to your hand.</p>
               )}
             </div>
           </div>
@@ -948,8 +948,8 @@ export default function Pulsar() {
           aria-modal="true"
           onClick={() => setDiscardModalOpen(false)}
         >
-          <div className="w-full max-w-2xl rounded-3xl border border-slate-700 bg-slate-900/95 p-6 text-slate-100 shadow-2xl shadow-black/60" onClick={(event) => event.stopPropagation()}>
-            <div className="flex items-center justify-between">
+          <div className="w-full max-w-2xl rounded-3xl border border-slate-700 bg-slate-900/95 p-4 text-slate-100 shadow-2xl shadow-black/60 sm:p-6" onClick={(event) => event.stopPropagation()}>
+            <div className="flex flex-col gap-2 text-center sm:flex-row sm:items-center sm:justify-between sm:text-left">
               <h2 className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-400">Strata Discard</h2>
               <button
                 type="button"
