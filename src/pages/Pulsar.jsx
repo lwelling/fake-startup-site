@@ -1,6 +1,15 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { PULSAR_EDICTS, TOTAL_PULSAR_EDICTS } from '../lib/pulsarCards';
 import FracturedCircleBoard from '../components/FracturedCircleBoard';
+
+const STRATA_GRID_LAYOUT = ['Mist', 'Echo', 'Bloom', 'Aether', 'Mist', 'Echo', null, 'Bloom', 'Aether'];
+
+const COMPASS_TARGET_MAP = {
+  Highest: [0, 1],
+  Even: [2, 5],
+  Lowest: [7, 8],
+  Odd: [3, 4],
+};
 
 const CARD_STYLES = {
   'Reach Manipulation': {
@@ -83,6 +92,19 @@ const MAX_STRATA_DECK_SIZE = 40;
 const STRATA_DECK_INCREMENT = 4;
 const DEFAULT_STRATA_DECK_SIZE = 24;
 
+function createInitialStrataCells() {
+  return STRATA_GRID_LAYOUT.map((type, idx) =>
+    type
+      ? {
+          id: `stratum-${idx}`,
+          type,
+          info: 0,
+          corruption: 0,
+        }
+      : null,
+  );
+}
+
 function wrapIndex(index) {
   const size = DIAL_LABELS.length;
   return (index + size) % size;
@@ -139,6 +161,13 @@ export default function Pulsar() {
   const [strataTimeline, setStrataTimeline] = useState(() => createEmptyTimeline());
   const [strataDiscard, setStrataDiscard] = useState([]);
   const [discardModalOpen, setDiscardModalOpen] = useState(false);
+  const [strataCells, setStrataCells] = useState(createInitialStrataCells);
+  const [infoTrack, setInfoTrack] = useState(0);
+  const [corruptionTrack, setCorruptionTrack] = useState(0);
+  const [gameStatus, setGameStatus] = useState('in-progress');
+  const [phaseLog, setPhaseLog] = useState([]);
+  const [queuedPreEdicts, setQueuedPreEdicts] = useState([]);
+  const [queuedPostEdicts, setQueuedPostEdicts] = useState([]);
 
   const remaining = deck.length;
   const drawn = hand.length;
@@ -172,6 +201,7 @@ export default function Pulsar() {
     const nextHand = [...hand.slice(0, index), ...hand.slice(index + 1)];
     setHand(nextHand);
     setDiscard((prevDiscard) => [card, ...prevDiscard]);
+    removeFromQueues(cardName);
   };
 
   const handleReclaim = (cardName) => {
@@ -190,6 +220,15 @@ export default function Pulsar() {
     setDeck(createEdictDeck());
     setHand([]);
     setDiscard([]);
+  };
+
+  const logEvent = (message) => {
+    setPhaseLog((prev) => [message, ...prev].slice(0, 8));
+  };
+
+  const removeFromQueues = (cardName) => {
+    setQueuedPreEdicts((prev) => prev.filter((name) => name !== cardName));
+    setQueuedPostEdicts((prev) => prev.filter((name) => name !== cardName));
   };
 
   const commitStrataDeckSize = (rawValue) => {
@@ -217,23 +256,277 @@ export default function Pulsar() {
     setStrataTimeline(createEmptyTimeline());
     setStrataDiscard([]);
     setStrataDeckSizeInput(String(strataDeckSize));
+    setStrataCells(createInitialStrataCells());
   };
 
-  const drawStrataCard = () => {
-    if (!strataDeck.length) {
-      return;
+  const adjustStrataTokens = (index, field, delta) => {
+    if (!delta) return;
+    setStrataCells((prev) =>
+      prev.map((cell, idx) => {
+        if (idx !== index || !cell) return cell;
+        const nextValue = Math.max(0, cell[field] + delta);
+        if (nextValue === cell[field]) return cell;
+        logEvent(`${field === 'info' ? 'Info' : 'Corruption'} ${delta > 0 ? '+' : ''}${delta} on ${cell.type}`);
+        return { ...cell, [field]: nextValue };
+      }),
+    );
+  };
+
+  const toggleEdictQueue = (card, phase) => {
+    if (phase === 'pre') {
+      setQueuedPreEdicts((prev) =>
+        prev.includes(card.name)
+          ? prev.filter((name) => name !== card.name)
+          : [...prev, card.name],
+      );
+      setQueuedPostEdicts((prev) => prev.filter((name) => name !== card.name));
+    } else {
+      setQueuedPostEdicts((prev) =>
+        prev.includes(card.name)
+          ? prev.filter((name) => name !== card.name)
+          : [...prev, card.name],
+      );
+      setQueuedPreEdicts((prev) => prev.filter((name) => name !== card.name));
+    }
+  };
+
+  const findTargetStratumIndex = (direction, type) => {
+    if (!type) return undefined;
+    const group = COMPASS_TARGET_MAP[direction] ?? [];
+    const directionalMatch = group.find(
+      (idx) => strataCells[idx] && strataCells[idx].type === type,
+    );
+    if (directionalMatch !== undefined) {
+      return directionalMatch;
+    }
+    const anyMatch = strataCells.findIndex((cell) => cell && cell.type === type);
+    return anyMatch >= 0 ? anyMatch : undefined;
+  };
+
+  const advancePulseDeck = () => {
+    const overflow = strataTimeline[2];
+    let topCard = null;
+    let rest = strataDeck;
+
+    if (strataDeck.length) {
+      [topCard, ...rest] = strataDeck;
+      setStrataDeck(rest);
     }
 
-    const [nextCard, ...rest] = strataDeck;
-    const overflow = strataTimeline[2];
-    const nextTimeline = [nextCard, strataTimeline[0], strataTimeline[1]];
-
-    setStrataDeck(rest);
+    const nextTimeline = [topCard, strataTimeline[0], strataTimeline[1]];
     setStrataTimeline(nextTimeline);
 
     if (overflow) {
       setStrataDiscard((prevDiscard) => [overflow, ...prevDiscard]);
     }
+
+    if (topCard) {
+      logEvent(`Pulse advanced: ${topCard.type}`);
+    }
+
+    return nextTimeline[1] ?? null;
+  };
+
+  const applyPulseToStratum = (nowCard) => {
+    if (!nowCard) return;
+    const direction = DIAL_LABELS[pulseIndex];
+    const targetIndex = findTargetStratumIndex(direction, nowCard.type);
+    if (targetIndex === undefined) {
+      logEvent(`No matching stratum for ${nowCard.type} during pulse.`);
+      return;
+    }
+
+    setStrataCells((prev) =>
+      prev.map((cell, idx) => {
+        if (idx !== targetIndex || !cell) return cell;
+        let info = cell.info;
+        let corruption = cell.corruption;
+        if (info > 0) {
+          info -= 1;
+          corruption += 1;
+          logEvent(`${cell.type} flipped 1 Info into Corruption.`);
+        }
+        info += 1;
+        logEvent(`${cell.type} gains +1 Info from Pulse.`);
+        return { ...cell, info, corruption };
+      }),
+    );
+  };
+
+  const applyDecayPhase = () => {
+    let conversions = 0;
+    setStrataCells((prev) =>
+      prev.map((cell) => {
+        if (!cell) return cell;
+        if (cell.info >= 2) {
+          conversions += 1;
+          return { ...cell, info: cell.info - 1, corruption: cell.corruption + 1 };
+        }
+        return cell;
+      }),
+    );
+    if (conversions) {
+      logEvent(`Decay converted ${conversions} Info into Corruption.`);
+    }
+  };
+
+  const applyEscalationPhase = () => {
+    let escalated = 0;
+    setStrataCells((prev) =>
+      prev.map((cell) => {
+        if (!cell) return cell;
+        if (cell.corruption >= 2) {
+          escalated += 1;
+          return { ...cell, corruption: cell.corruption - 1 };
+        }
+        return cell;
+      }),
+    );
+    if (escalated) {
+      setCorruptionTrack((prev) => prev + escalated);
+      logEvent(`Escalation moved ${escalated} Corruption to the global track.`);
+    }
+  };
+
+  const applyEdictEffect = (card, phase, context) => {
+    const contextNowCard = context?.nowCard ?? strataTimeline[1];
+    const contextDirection = context?.direction ?? DIAL_LABELS[pulseIndex];
+    const targetIndexForContext = contextNowCard
+      ? findTargetStratumIndex(contextDirection, contextNowCard.type)
+      : undefined;
+    const name = card.name;
+    switch (name) {
+      case 'Compass Shift':
+        setPulseIndex((prev) => wrapIndex(prev + 1));
+        logEvent('Compass Shift rotates the Pulse hand clockwise.');
+        break;
+      case 'Bend the Celestial Axis':
+        setPulseIndex((prev) => wrapIndex(prev - 1));
+        setReachIndex((prev) => wrapIndex(prev - 1));
+        logEvent('Bend the Celestial Axis rotates both hands counterclockwise.');
+        break;
+      case 'Info Absorb':
+        if (targetIndexForContext !== undefined && strataCells[targetIndexForContext]?.info > 0) {
+          const targetType = strataCells[targetIndexForContext]?.type ?? 'Stratum';
+          setStrataCells((prev) =>
+            prev.map((cell, idx) => {
+              if (idx !== targetIndexForContext || !cell) return cell;
+              return { ...cell, info: cell.info - 1 };
+            }),
+          );
+          setInfoTrack((prev) => prev + 1);
+          logEvent(`Info Absorb moves 1 Info from ${targetType} to the track.`);
+        } else {
+          logEvent('Info Absorb failed: no Info on the Now stratum.');
+        }
+        break;
+      case 'Purge Corruption':
+        if (targetIndexForContext !== undefined && strataCells[targetIndexForContext]?.corruption > 0) {
+          const targetType = strataCells[targetIndexForContext]?.type ?? 'Stratum';
+          setStrataCells((prev) =>
+            prev.map((cell, idx) => {
+              if (idx !== targetIndexForContext || !cell) return cell;
+              return { ...cell, corruption: Math.max(0, cell.corruption - 1) };
+            }),
+          );
+          logEvent(`Purge Corruption removes 1 Corruption from ${targetType}.`);
+        } else {
+          logEvent('Purge Corruption failed: no Corruption on the targeted stratum.');
+        }
+        break;
+      case 'Harvest Dreams':
+        if (targetIndexForContext !== undefined && strataCells[targetIndexForContext]?.info > 0) {
+          const qty = strataCells[targetIndexForContext]?.info ?? 0;
+          const targetType = strataCells[targetIndexForContext]?.type ?? 'Stratum';
+          setStrataCells((prev) =>
+            prev.map((cell, idx) => {
+              if (idx !== targetIndexForContext || !cell) return cell;
+              return { ...cell, info: 0 };
+            }),
+          );
+          setInfoTrack((prev) => prev + qty);
+          logEvent(`Harvest Dreams banks ${qty} Info from ${targetType}.`);
+        } else {
+          logEvent('Harvest Dreams found no Info to harvest.');
+        }
+        break;
+      default:
+        logEvent(`[${name}] effect is not yet implemented; resolve manually.`);
+    }
+  };
+
+  const executeQueuedEdicts = (phase, context = {}) => {
+    const queue = phase === 'pre' ? queuedPreEdicts : queuedPostEdicts;
+    if (!queue.length) return;
+    const executionList = hand.filter((card) => queue.includes(card.name));
+    if (!executionList.length) {
+      if (phase === 'pre') setQueuedPreEdicts([]);
+      else setQueuedPostEdicts([]);
+      return;
+    }
+
+    executionList.forEach((card) => applyEdictEffect(card, phase, context));
+    const names = new Set(queue);
+    setHand((prev) => prev.filter((card) => !names.has(card.name)));
+    setDiscard((prev) => [...executionList, ...prev]);
+    executionList.forEach((card) => removeFromQueues(card.name));
+    logEvent(`${phase === 'pre' ? 'Pre' : 'Post'}-phase edicts executed: ${executionList
+      .map((card) => card.name)
+      .join(', ')}.`);
+  };
+
+  const nowCard = strataTimeline[1];
+  const nowDirection = DIAL_LABELS[pulseIndex];
+  const nowTargetIndex = nowCard ? findTargetStratumIndex(nowDirection, nowCard.type) : undefined;
+  const canBankInfo =
+    nowTargetIndex !== undefined &&
+    strataCells[nowTargetIndex] &&
+    strataCells[nowTargetIndex].info > 0;
+
+  const bankInfoFromNow = () => {
+    if (!canBankInfo || nowTargetIndex === undefined) {
+      logEvent('No Info available to bank from the Now stratum.');
+      return;
+    }
+
+    const targetType = strataCells[nowTargetIndex]?.type ?? 'Stratum';
+    setStrataCells((prev) =>
+      prev.map((cell, idx) => {
+        if (idx !== nowTargetIndex || !cell) return cell;
+        return { ...cell, info: Math.max(0, cell.info - 1) };
+      }),
+    );
+    setInfoTrack((prev) => prev + 1);
+    logEvent(`Banked 1 Info from ${targetType} to the track.`);
+  };
+
+  const rotateCompassAfterRound = () => {
+    if (locked) {
+      setPulseIndex((prev) => wrapIndex(prev + 1));
+      setReachIndex((prev) => wrapIndex(prev + 1));
+    } else {
+      setPulseIndex((prev) => wrapIndex(prev + 1));
+      setReachIndex((prev) => wrapIndex(prev + 1));
+    }
+  };
+
+  const resolveRound = () => {
+    if (gameStatus !== 'in-progress') return;
+    setDiscardModalOpen(false);
+    const preContext = { nowCard: strataTimeline[1], direction: DIAL_LABELS[pulseIndex] };
+    executeQueuedEdicts('pre', preContext);
+    const nowCard = advancePulseDeck();
+    applyPulseToStratum(nowCard);
+    applyDecayPhase();
+    applyEscalationPhase();
+    const postContext = { nowCard, direction: DIAL_LABELS[pulseIndex] };
+    executeQueuedEdicts('post', postContext);
+    rotateCompassAfterRound();
+    logEvent('Round resolved.');
+  };
+
+  const drawStrataCard = () => {
+    advancePulseDeck();
   };
 
   const nudge = (handType, step) => {
@@ -249,6 +542,19 @@ export default function Pulsar() {
       setReachIndex((prev) => wrapIndex(prev + step));
     }
   };
+
+  useEffect(() => {
+    if (gameStatus !== 'in-progress') {
+      return;
+    }
+    if (infoTrack >= 10) {
+      setGameStatus('victory');
+      logEvent('Victory! Information track reached 10.');
+    } else if (corruptionTrack >= 10) {
+      setGameStatus('defeat');
+      logEvent('Defeat! Corruption track reached 10.');
+    }
+  }, [infoTrack, corruptionTrack, gameStatus]);
 
   return (
     <div className="min-h-screen bg-slate-950 py-12 px-4 text-slate-100">
@@ -269,7 +575,11 @@ export default function Pulsar() {
                 <span className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">Pairs Aligned</span>
               </div>
               <div className="mt-4">
-                <FracturedCircleBoard className="w-full" />
+                <FracturedCircleBoard
+                  className="w-full"
+                  cells={strataCells}
+                  onAdjustTokens={adjustStrataTokens}
+                />
               </div>
             </div>
 
@@ -318,6 +628,48 @@ export default function Pulsar() {
                   >
                     Reset Deck
                   </button>
+                </div>
+              </div>
+              <div className="grid gap-3 rounded-2xl border border-slate-800 bg-slate-900/60 p-4 sm:grid-cols-2">
+                <div className="space-y-1">
+                  <span className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">Info Track</span>
+                  <div className="flex items-center gap-2">
+                    <span className="rounded-full bg-white/10 px-3 py-1 text-sm font-semibold text-white">
+                      {infoTrack} / 10
+                    </span>
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <span className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">Corruption Track</span>
+                  <div className="flex items-center gap-2">
+                    <span className="rounded-full bg-red-500/20 px-3 py-1 text-sm font-semibold text-red-100">
+                      {corruptionTrack} / 10
+                    </span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 sm:col-span-2">
+                  <button
+                    type="button"
+                    onClick={resolveRound}
+                    className="inline-flex items-center gap-2 rounded-full bg-emerald-500 px-4 py-2 text-sm font-semibold text-emerald-950 shadow transition hover:bg-emerald-400"
+                  >
+                    Resolve Round
+                  </button>
+                  <button
+                    type="button"
+                    onClick={bankInfoFromNow}
+                    disabled={!canBankInfo}
+                    className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold shadow transition ${
+                      canBankInfo
+                        ? 'bg-slate-200 text-slate-900 hover:bg-white'
+                        : 'cursor-not-allowed bg-white/10 text-white/40'
+                    }`}
+                  >
+                    Bank Info (Now)
+                  </button>
+                  <span className="text-xs uppercase tracking-[0.3em] text-slate-400">
+                    Status: {gameStatus === 'in-progress' ? 'In Progress' : gameStatus === 'victory' ? 'Victory' : 'Defeat'}
+                  </span>
                 </div>
               </div>
               <div className="space-y-4">
@@ -417,6 +769,30 @@ export default function Pulsar() {
             </div>
           </div>
         </section>
+
+        <section className="rounded-3xl border border-slate-800 bg-slate-900/60 p-6 shadow-lg shadow-slate-900/30">
+          <div className="flex items-center justify-between">
+            <h2 className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-400">Round Log</h2>
+            <button
+              type="button"
+              onClick={() => setPhaseLog([])}
+              className="rounded-full border border-white/20 px-3 py-1 text-[11px] uppercase tracking-[0.3em] text-slate-200 hover:border-white/40 hover:bg-white/10"
+            >
+              Clear
+            </button>
+          </div>
+          {phaseLog.length ? (
+            <ul className="mt-4 space-y-2 text-xs text-slate-300">
+              {phaseLog.map((entry, idx) => (
+                <li key={`log-${idx}`} className="rounded-lg border border-slate-800/60 bg-slate-900/70 px-3 py-2">
+                  {entry}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="mt-4 text-xs text-slate-500">No events logged yet.</p>
+          )}
+        </section>
         <section className="grid gap-6 rounded-3xl border border-slate-800 bg-slate-900/60 p-8 shadow-lg shadow-slate-900/30 xl:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] xl:items-start">
           <div className="space-y-6">
             <div className="flex flex-wrap items-center gap-3 text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">
@@ -463,21 +839,52 @@ export default function Pulsar() {
               </div>
               {hand.length ? (
                 <div className="grid gap-4 sm:grid-cols-2">
-                  {hand.map((card) => (
+                  {hand.map((card) => {
+                  const isQueuedPre = queuedPreEdicts.includes(card.name);
+                  const isQueuedPost = queuedPostEdicts.includes(card.name);
+                  return (
                     <EdictCard
                       key={card.name}
                       card={card}
                       actionSlot={
-                        <button
-                          type="button"
-                          onClick={() => handleDiscard(card.name)}
-                          className="rounded-full bg-transparent px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-white/80 transition hover:bg-white/10 hover:text-white"
-                        >
-                          Send to Discard
-                        </button>
+                        <div className="flex flex-wrap gap-2">
+                          {card.timing === 'pre' ? (
+                            <button
+                              type="button"
+                              onClick={() => toggleEdictQueue(card, 'pre')}
+                              className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] transition ${
+                                isQueuedPre
+                                  ? 'bg-emerald-500/20 text-emerald-200 border border-emerald-400/50'
+                                  : 'bg-transparent text-white/80 border border-white/20 hover:bg-white/10'
+                              }`}
+                            >
+                              {isQueuedPre ? 'Queued →P' : 'Queue →P'}
+                            </button>
+                          ) : card.timing === 'post' ? (
+                            <button
+                              type="button"
+                              onClick={() => toggleEdictQueue(card, 'post')}
+                              className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] transition ${
+                                isQueuedPost
+                                  ? 'bg-indigo-500/20 text-indigo-200 border border-indigo-400/50'
+                                  : 'bg-transparent text-white/80 border border-white/20 hover:bg-white/10'
+                              }`}
+                            >
+                              {isQueuedPost ? 'Queued P→' : 'Queue P→'}
+                            </button>
+                          ) : null}
+                          <button
+                            type="button"
+                            onClick={() => handleDiscard(card.name)}
+                            className="rounded-full bg-transparent px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-white/80 transition hover:bg-white/10 hover:text-white"
+                          >
+                            Send to Discard
+                          </button>
+                        </div>
                       }
                     />
-                  ))}
+                  );
+                })}
                 </div>
               ) : (
                 <p className="text-sm text-slate-500">Draw cards from the deck to fill your hand. Each edict will appear here ready for use.</p>
