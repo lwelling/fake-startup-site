@@ -1,24 +1,20 @@
 import { useState } from 'react';
-
-const CARD_TYPES = ['Aether', 'Mist', 'Echo', 'Bloom'];
+import { PULSAR_EDICTS, TOTAL_PULSAR_EDICTS } from '../lib/pulsarCards';
 
 const CARD_STYLES = {
-  Bloom: {
-    card: 'border-emerald-400 bg-emerald-500/20 text-emerald-100',
-    chip: 'border-emerald-400/70 bg-emerald-500/10 text-emerald-200',
+  'Reach Manipulation': {
+    card: 'border-emerald-400/70 bg-emerald-500/10 text-emerald-50 shadow-emerald-500/10',
+    chip: 'border-emerald-400/70 bg-emerald-500/20 text-emerald-100',
   },
-  Mist: {
-    card: 'border-sky-400 bg-sky-500/20 text-sky-100',
-    chip: 'border-sky-400/70 bg-sky-500/10 text-sky-200',
+  'Board Manipulation': {
+    card: 'border-sky-400/70 bg-sky-500/10 text-sky-50 shadow-sky-500/10',
+    chip: 'border-sky-400/70 bg-sky-500/20 text-sky-100',
   },
-  Echo: {
-    card: 'border-slate-200 bg-white text-slate-900',
-    chip: 'border-slate-200 bg-white/80 text-slate-900',
-  },
-  Aether: {
-    card: 'border-violet-400 bg-violet-500/20 text-violet-100',
-    chip: 'border-violet-400/70 bg-violet-500/10 text-violet-200',
-  },
+};
+
+const DEFAULT_CARD_STYLES = {
+  card: 'border-slate-700 bg-slate-900/70 text-slate-100 shadow-slate-900/30',
+  chip: 'border-slate-600 bg-slate-800/80 text-slate-200',
 };
 
 function getCardClasses(card, variant = 'card') {
@@ -26,8 +22,10 @@ function getCardClasses(card, variant = 'card') {
     return '';
   }
 
-  return CARD_STYLES[card]?.[variant] ?? '';
+  const styles = CARD_STYLES[card.category] ?? DEFAULT_CARD_STYLES;
+  return styles[variant] ?? '';
 }
+
 const DIAL_LABELS = ['Highest', 'Even', 'Lowest', 'Odd'];
 
 function shuffle(array) {
@@ -39,13 +37,8 @@ function shuffle(array) {
   return result;
 }
 
-function createDeck(size) {
-  const repetitions = size / CARD_TYPES.length;
-  const deck = [];
-  for (let i = 0; i < repetitions; i += 1) {
-    deck.push(...CARD_TYPES);
-  }
-  return shuffle(deck);
+function createDeck() {
+  return shuffle(PULSAR_EDICTS.map((card) => ({ ...card })));
 }
 
 function wrapIndex(index) {
@@ -72,75 +65,88 @@ function CompassHand({ angle, colorClass, label }) {
   );
 }
 
-function TimelineCard({ label, value }) {
-  const filledClasses = `border-2 ${getCardClasses(value) || 'border-slate-500 bg-slate-800 text-white'}`;
-  const emptyClasses = 'border-2 border-dashed border-slate-600 bg-slate-900/40 text-slate-500';
-
+function EdictCard({ card, actionSlot }) {
   return (
-    <div className="flex flex-col items-center gap-3">
-      <span className="text-sm uppercase tracking-widest text-slate-400">
-        {label}
-      </span>
-      <div
-        className={`flex h-32 w-24 items-center justify-center rounded-2xl text-lg font-semibold transition-colors ${
-          value ? filledClasses : emptyClasses
-        }`}
-      >
-        {value || 'Empty'}
+    <div
+      className={`flex h-full flex-col justify-between rounded-3xl border-2 border-slate-700 bg-slate-900/70 p-5 text-slate-100 shadow-lg shadow-slate-950/30 transition hover:-translate-y-1 hover:shadow-2xl ${getCardClasses(card)}`}
+    >
+      <div className="space-y-4">
+        <span
+          className={`inline-flex items-center rounded-full border border-slate-600 bg-slate-800/80 px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-slate-300 ${getCardClasses(card, 'chip')}`}
+        >
+          {card.category}
+        </span>
+        <h3 className="text-2xl font-bold tracking-tight text-white">{card.name}</h3>
+        <p className="text-sm leading-relaxed text-slate-200/90">{card.effect}</p>
       </div>
+      {actionSlot ? <div className="mt-6 flex justify-end">{actionSlot}</div> : null}
     </div>
   );
 }
 
 export default function Pulsar() {
-  const [selectedSize, setSelectedSize] = useState(4);
-  const [deck, setDeck] = useState(() => createDeck(4));
-  const [spaces, setSpaces] = useState([null, null, null]);
+  const [deck, setDeck] = useState(() => createDeck());
+  const [hand, setHand] = useState([]);
   const [discard, setDiscard] = useState([]);
   const [pulseIndex, setPulseIndex] = useState(0);
   const [reachIndex, setReachIndex] = useState(2);
   const [locked, setLocked] = useState(false);
 
   const remaining = deck.length;
-  const [before, now, after] = spaces;
+  const drawn = hand.length;
+  const discarded = discard.length;
 
   const handleDraw = () => {
-    if (!deck.length) {
-      return;
-    }
-    const [nextCard, ...rest] = deck;
-    setDeck(rest);
-    setSpaces((prevSpaces) => {
-      const outgoing = prevSpaces[2];
-      if (outgoing) {
-        setDiscard((prevDiscard) => [outgoing, ...prevDiscard]);
+    setDeck((prevDeck) => {
+      if (!prevDeck.length) {
+        return prevDeck;
       }
-      return [nextCard, prevSpaces[0], prevSpaces[1]];
+      const [nextCard, ...rest] = prevDeck;
+      setHand((prevHand) => [nextCard, ...prevHand]);
+      return rest;
     });
   };
 
-  const handleSizeChange = (event) => {
-    const size = Number(event.target.value);
-    setSelectedSize(size);
-    setDeck(createDeck(size));
-    setSpaces([null, null, null]);
-    setDiscard([]);
+  const handleDiscard = (cardName) => {
+    setHand((prevHand) => {
+      const index = prevHand.findIndex((card) => card.name === cardName);
+      if (index === -1) {
+        return prevHand;
+      }
+
+      const card = prevHand[index];
+      setDiscard((prevDiscard) => [card, ...prevDiscard]);
+      return [...prevHand.slice(0, index), ...prevHand.slice(index + 1)];
+    });
+  };
+
+  const handleReclaim = (cardName) => {
+    setDiscard((prevDiscard) => {
+      const index = prevDiscard.findIndex((card) => card.name === cardName);
+      if (index === -1) {
+        return prevDiscard;
+      }
+
+      const card = prevDiscard[index];
+      setHand((prevHand) => [card, ...prevHand]);
+      return [...prevDiscard.slice(0, index), ...prevDiscard.slice(index + 1)];
+    });
   };
 
   const resetBoard = () => {
-    setDeck(createDeck(selectedSize));
-    setSpaces([null, null, null]);
+    setDeck(createDeck());
+    setHand([]);
     setDiscard([]);
   };
 
-  const nudge = (hand, step) => {
+  const nudge = (handType, step) => {
     if (locked) {
       setPulseIndex((prev) => wrapIndex(prev + step));
       setReachIndex((prev) => wrapIndex(prev + step));
       return;
     }
 
-    if (hand === 'pulse') {
+    if (handType === 'pulse') {
       setPulseIndex((prev) => wrapIndex(prev + step));
     } else {
       setReachIndex((prev) => wrapIndex(prev + step));
@@ -153,84 +159,122 @@ export default function Pulsar() {
         <header className="space-y-4 text-center">
           <h1 className="text-4xl font-bold tracking-tight text-white">Pulsar</h1>
           <p className="text-lg text-slate-300">
-            Explore the rhythm of the deck and tune into the compass to chart your
-            next move.
+            Shuffle the dream edicts, draw them into your hand, and let the compass guide
+            your next move.
           </p>
         </header>
 
         <section className="rounded-3xl border border-slate-800 bg-slate-900/60 p-8 shadow-lg shadow-slate-900/30">
           <div className="flex flex-col gap-8 md:flex-row md:items-center md:justify-between">
             <div className="space-y-4">
-              <label className="block text-sm font-semibold uppercase tracking-widest text-slate-400">
-                Deck Size: <span className="text-slate-200">{selectedSize}</span>
-              </label>
-              <input
-                type="range"
-                min="4"
-                max="40"
-                step="4"
-                value={selectedSize}
-                onChange={handleSizeChange}
-                className="h-2 w-full cursor-pointer appearance-none rounded-full bg-slate-700 accent-sky-400"
-              />
-              <button
-                type="button"
-                onClick={resetBoard}
-                className="inline-flex items-center gap-2 rounded-full bg-sky-500 px-4 py-2 text-sm font-semibold text-slate-950 shadow transition hover:bg-sky-400"
-              >
-                Reset Deck
-              </button>
+              <div className="flex flex-wrap items-center gap-3 text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">
+                <span>Total Cards: {TOTAL_PULSAR_EDICTS}</span>
+                <span>In Hand: {drawn}</span>
+                <span>Discarded: {discarded}</span>
+              </div>
+              <p className="max-w-md text-sm text-slate-400">
+                The deck is shuffled face down. Draw one edict at a time to reveal it in your
+                hand. Discarded edicts can be reclaimed whenever you need them again.
+              </p>
+              <div className="flex flex-wrap gap-3">
+                <button
+                  type="button"
+                  onClick={handleDraw}
+                  disabled={!remaining}
+                  className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold shadow transition ${
+                    remaining
+                      ? 'bg-sky-500 text-slate-950 shadow-sky-500/40 hover:bg-sky-400'
+                      : 'cursor-not-allowed bg-slate-800 text-slate-500'
+                  }`}
+                >
+                  Draw Card
+                  <span className="text-xs uppercase tracking-[0.2em]">
+                    {remaining ? `${remaining} left` : 'Empty'}
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  onClick={resetBoard}
+                  className="inline-flex items-center gap-2 rounded-full bg-slate-200 px-4 py-2 text-sm font-semibold text-slate-900 shadow transition hover:bg-white"
+                >
+                  Reset Deck
+                </button>
+              </div>
             </div>
 
-            <button
-              type="button"
-              onClick={handleDraw}
-              disabled={!remaining}
-              className={`group relative flex h-40 w-28 flex-col items-center justify-center rounded-3xl border-2 text-center text-base font-semibold transition ${
-                remaining
-                  ? 'border-sky-400 bg-slate-900/80 text-sky-200 hover:border-sky-300 hover:text-sky-100'
-                  : 'cursor-not-allowed border-slate-700 bg-slate-900/30 text-slate-600'
-              }`}
-            >
-              <span className="text-xs uppercase tracking-[0.3em] text-slate-400">Deck</span>
-              <span className="mt-3 text-3xl font-bold text-white">
-                {remaining}
+            <div className="group relative flex h-44 w-32 flex-col items-center justify-center rounded-3xl border-2 border-dashed border-slate-700 bg-slate-900/80 text-center text-base font-semibold text-slate-300 transition hover:border-slate-500">
+              <span className="text-xs uppercase tracking-[0.3em] text-slate-500">Deck</span>
+              <span className="mt-3 text-4xl font-bold text-white">{remaining}</span>
+              <span className="mt-1 text-xs text-slate-500">
+                {remaining === 1 ? 'card remaining' : 'cards remaining'}
               </span>
-              <span className="mt-1 text-xs text-slate-400">{remaining === 1 ? 'card left' : 'cards left'}</span>
-              {remaining ? (
-                <span className="absolute inset-x-6 bottom-4 rounded-full bg-sky-500/20 px-2 py-1 text-xs font-medium text-sky-200 opacity-0 transition group-hover:opacity-100">
-                  Draw &amp; Reveal
-                </span>
-              ) : null}
-            </button>
-          </div>
-
-          <div className="mt-10 grid gap-8 md:grid-cols-3">
-            <TimelineCard label="Before" value={before} />
-            <TimelineCard label="Now" value={now} />
-            <TimelineCard label="After" value={after} />
-          </div>
-
-          <div className="mt-10">
-            <h2 className="text-sm font-semibold uppercase tracking-widest text-slate-400">
-              Discard Pile
-            </h2>
-            <div className="mt-4 flex flex-wrap gap-3">
-              {discard.length ? (
-                discard.map((card, index) => (
-                  <div
-                    key={`${card}-${index}`}
-                    className={`rounded-2xl border px-4 py-2 text-sm font-semibold ${
-                      getCardClasses(card, 'chip') || 'border-slate-700 bg-slate-900/70 text-slate-200'
-                    }`}
-                  >
-                    {card}
-                  </div>
-                ))
-              ) : (
-                <p className="text-sm text-slate-500">No cards have been discarded yet.</p>
-              )}
             </div>
+          </div>
+
+          <div className="mt-10 space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-400">Hand</h2>
+              <span className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
+                {drawn ? `${drawn} card${drawn === 1 ? '' : 's'}` : 'Empty'}
+              </span>
+            </div>
+            {hand.length ? (
+              <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                {hand.map((card) => (
+                  <EdictCard
+                    key={card.name}
+                    card={card}
+                    actionSlot={
+                      <button
+                        type="button"
+                        onClick={() => handleDiscard(card.name)}
+                        className="rounded-full bg-transparent px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-white/80 transition hover:bg-white/10 hover:text-white"
+                      >
+                        Send to Discard
+                      </button>
+                    }
+                  />
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-slate-500">
+                Draw cards from the deck to fill your hand. Each edict will appear here ready
+                for use.
+              </p>
+            )}
+          </div>
+
+          <div className="mt-12 space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-400">Discard Pile</h2>
+              <span className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
+                {discarded ? `${discarded} card${discarded === 1 ? '' : 's'}` : 'Empty'}
+              </span>
+            </div>
+            {discard.length ? (
+              <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                {discard.map((card) => (
+                  <EdictCard
+                    key={`discard-${card.name}`}
+                    card={card}
+                    actionSlot={
+                      <button
+                        type="button"
+                        onClick={() => handleReclaim(card.name)}
+                        className="rounded-full bg-transparent px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-white/80 transition hover:bg-white/10 hover:text-white"
+                      >
+                        Reclaim to Hand
+                      </button>
+                    }
+                  />
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-slate-500">
+                Discarded edicts will gather here. Reclaim any card to immediately return it to
+                your hand.
+              </p>
+            )}
           </div>
         </section>
 
