@@ -1,0 +1,41 @@
+Category,Name,Threshold,Timing,Tense,Effect
+Ego Starting,Seal the Break,0,→P,Now,Stitch the fracture shut and absorb 1 Info from the stratum.
+Ego Starting,Bind Corruption,0,P→,Now,Anchor the churning miasma and prevent 1 Corruption from spilling over.
+Ego Starting,Compass Shift,0,→P,Now,Send a tremor through the dial and rotate the Compass Hands 90° clockwise or counterclockwise.
+Ego Starting,Info Absorb,0,→P,Now,Channel the pulse and take 1 Info into your bank.
+Ego Starting,Purge Corruption,0,P→,Now,Wash the lattice clean and clear 1 Corruption from the target.
+Basic,Memory Anchor,0,P→,Now,Set a mnemonic mooring and prevent 1 Info from slipping away.
+Basic,Echo Reach,0,P→,Now,Extend the resonance so the Control Hand also targets the opposite Stratum.
+Basic,Harvest Dreams,0,→P,Now,Rake the dreamfield clean and absorb all Info within reach.
+Basic,Silent Echo,0,→P,Now,Mute the resonance entirely and prevent Pulse effect for the moment.
+Basic,Dream Cascade,0,→P,Now,Open a spillway to move 1 Info toward calmer strata.
+Intermediate,Temporal Wrench,2,→P,Now,Wrench time backward to rotate Pulse Hand 90° counterclockwise; then add 1 Info to your Bank.
+Intermediate,Counterpull,2,→P,Now,Counterbalance the dial to rotate Control Hand 90° clockwise; then prevent 1 Corruption decay anywhere.
+Intermediate,Waterfall Transition,3,→P,Now,Redirect the elemental flow to change 1 Mist→Aether and 1 Aether→Mist.
+Intermediate,Bloomshift,2,P→,Now,Bathe the present in petals and change Now Stratum’s type to Echo until end of round.
+Intermediate,Echo Collapse,3,→P,Now,Shatter a persistent Echo and reassign it randomly as Mist, Bloom, or Aether.
+Intermediate,Resonant Pulse,3,→P,Now,Let the pulse harmonize so the Now Stratum acts as all four types.
+Intermediate,Corruption Burn,2,P→,Now,Transmute taint into clarity as you change 1 Corruption into pure info.
+Intermediate,Nightmare Banish,2,P→,Now,Exile the nightmare: if Now has 2+ Corruption, remove all but 1.
+Intermediate,Lucid Bloom,3,P→,Now,If Now is Bloom, kindle lucidity and immediately ascend 1 Info from your Bank.
+Intermediate,Mist Shroud,2,P→,Now,If Now is Mist, weave a shroud to prevent 1 escalation anywhere.
+Intermediate,Stellar Shift,2,→P,Will,Slide the constellations so the Control Hand may target the Before slot instead of Now.
+Intermediate,Reverie Bind,2,P→,Yesterday,Lash the timeline tight; the After slot is locked and doesn’t discard next round.
+Intermediate,Axis Realignment,2,→P,Now,Flip the axis entirely—you swap positions of Pulse and Control Hands.
+Intermediate,Fracture Seal,3,P→,Now,Seal a shifting layer and lock 1 Stratum’s type; it cannot be reshaped for 2 rounds.
+Intermediate,Dream Sync,2,P→,Now,Sync the rhythm to link Pulse and Control Hands until next round.
+Intermediate,Time Echo,3,P→,Yesterday,Call yesterday forward and repeat the effect of the card leaving the After slot.
+Intermediate,Orbit Breaker,2,→P,Now,Crack the orbit and reverse Compass rotation for this reload.
+Intermediate,Echo Rebound,3,P→,Now,If Now is Echo, let the song rebound and copy its effect onto an adjacent Stratum.
+Intermediate,Dimensional Fold,3,P→,Now,Bend space-time so the Pulse Hand targets two Strata of the same type.
+Intermediate,Cascade Break,3,→P,Now,Interrupt the cascade—when Corruption escalates in one Stratum, redirect it to its type-twin instead.
+Major,Dream Synthesis,4,P→,Now,Synthesize the dreamlight: ascend 1 Info from your Bank; then prevent 1 decay anywhere.
+Major,Fractured Resonance,4,P→,Now,Harness the fracture to clear 1 Corruption; then you ascend 1 Info.
+Major,Temporal Collapse,4,P→,Now,Trigger a collapse—immediately advance the Pulse Queue; then play another →P Edict.
+Major,Mirror Pulse,5,P→,Now,Split the wave so you apply Now’s Pulse effect twice; then decay 1 Info anywhere.
+Major,Reality Twist,4,→P,Now,Twist reality: swap the Before and Now slots; then rotate the Pulse Hand 90°.
+Major,Dream Weave,4,→P,Now,Weave radiant threads to rotate the Control Hand 90°; then absorb 1 Info into your Bank.
+Major,Cascade Seal,5,P→,Now,Seal the cascade to prevent escalation anywhere; then rotate the Compass 90° counterclockwise.
+Major,Corrupted Insight,5,→P,Now,Transfuse corruption into wisdom: clear 1 Corruption; then add 1 Info to your Bank; then rotate the Control Hand 90°.
+Major,Absolute Seal,5,→P,Now,Drop an absolute ward—cancel 1 escalation; then gain +1 permanent Info directly to the Victory Track.
+Major,Foresight Surge,4,→P,Will,Spark foresight: glimpse the next 2 Pulse cards; then add 1 Info to the Before slot’s Stratum.
