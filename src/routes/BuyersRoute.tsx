@@ -173,6 +173,33 @@ type SortKey =
 
 type SortDirection = 'asc' | 'desc';
 
+type BuyerFinderInput = {
+  year?: number;
+  make?: string;
+  model?: string;
+  mileage?: number;
+};
+
+type BuyerFinderResult = {
+  buyer: string;
+  buyerId: string;
+  score: number;
+  matches: number;
+  estimatedPrice: number | null;
+  estimatedGross: number | null;
+};
+
+type FinderCandidate = {
+  buyer: string;
+  buyerId: string;
+  score: number;
+  matches: number;
+  priceTotal: number;
+  priceWeight: number;
+  grossTotal: number;
+  grossWeight: number;
+};
+
 function parseNumber(value: unknown): number | null | undefined {
   if (typeof value === 'number') {
     return Number.isFinite(value) ? value : null;
@@ -780,6 +807,13 @@ export default function BuyersRoute() {
   const currentYear = new Date().getFullYear();
   const [startYear, setStartYear] = useState<number>(currentYear);
   const [endYear, setEndYear] = useState<number>(currentYear);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [finderYear, setFinderYear] = useState('');
+  const [finderMake, setFinderMake] = useState('');
+  const [finderModel, setFinderModel] = useState('');
+  const [finderMileage, setFinderMileage] = useState('');
+  const [finderResult, setFinderResult] = useState<BuyerFinderResult | null>(null);
+  const [finderError, setFinderError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
 
   const {
@@ -881,13 +915,21 @@ export default function BuyersRoute() {
     return storedStats;
   }, [filteredDeals, storedStats]);
 
+  const filteredStats = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+    if (!query) {
+      return displayStats;
+    }
+    return displayStats.filter((stat) => stat.buyer.toLowerCase().includes(query));
+  }, [displayStats, searchQuery]);
+
   const hasMileage = useMemo(
-    () => displayStats.some((stat) => typeof stat.averages.mileage === 'number'),
-    [displayStats],
+    () => filteredStats.some((stat) => typeof stat.averages.mileage === 'number'),
+    [filteredStats],
   );
 
   const sortedStats = useMemo(() => {
-    const sorted = [...displayStats];
+    const sorted = [...filteredStats];
     sorted.sort((a, b) => {
       const multiplier = sortDirection === 'asc' ? 1 : -1;
       switch (sortKey) {
@@ -916,7 +958,7 @@ export default function BuyersRoute() {
       }
     });
     return sorted;
-  }, [displayStats, sortDirection, sortKey]);
+  }, [filteredStats, sortDirection, sortKey]);
 
   const onSort = (key: SortKey) => {
     setSortKey((prev) => {
@@ -944,6 +986,93 @@ export default function BuyersRoute() {
       setEndYear(value);
     }
   };
+
+  const handleSearchChange = (event: ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(event.target.value);
+  };
+
+  const handleFinderSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const trimmedYear = finderYear.trim();
+    const trimmedMileage = finderMileage.trim();
+    const makeValue = finderMake.trim();
+    const modelValue = finderModel.trim();
+
+    let parsedYear: number | undefined;
+    if (trimmedYear) {
+      const numericYear = Number(trimmedYear);
+      if (!Number.isFinite(numericYear)) {
+        setFinderError('Please enter a valid year.');
+        setFinderResult(null);
+        return;
+      }
+      parsedYear = Math.round(numericYear);
+      if (parsedYear < 1950 || parsedYear > currentYear + 1) {
+        setFinderError('Please enter a year between 1950 and next year.');
+        setFinderResult(null);
+        return;
+      }
+    }
+
+    let parsedMileage: number | undefined;
+    if (trimmedMileage) {
+      const numericMileage = Number(trimmedMileage);
+      if (!Number.isFinite(numericMileage)) {
+        setFinderError('Please enter a valid mileage.');
+        setFinderResult(null);
+        return;
+      }
+      parsedMileage = Math.max(0, Math.round(numericMileage));
+    }
+
+    if (
+      parsedYear === undefined &&
+      !makeValue &&
+      !modelValue &&
+      parsedMileage === undefined
+    ) {
+      setFinderError('Enter at least one detail to suggest a buyer.');
+      setFinderResult(null);
+      return;
+    }
+
+    if (!rawDeals.length && displayStats.length === 0) {
+      setFinderError('No buyer data available yet. Upload a report first.');
+      setFinderResult(null);
+      return;
+    }
+
+    const result = findLikelyBuyer(rawDeals, displayStats, {
+      year: parsedYear,
+      make: makeValue || undefined,
+      model: modelValue || undefined,
+      mileage: parsedMileage,
+    });
+
+    if (result) {
+      setFinderResult(result);
+      setFinderError(null);
+    } else {
+      setFinderResult(null);
+      setFinderError('No likely buyer found for the provided details.');
+    }
+  };
+
+  const handleFinderReset = () => {
+    setFinderYear('');
+    setFinderMake('');
+    setFinderModel('');
+    setFinderMileage('');
+    setFinderResult(null);
+    setFinderError(null);
+  };
+
+  const hasSearch = searchQuery.trim().length > 0;
+  const emptyMessage = hasSearch
+    ? 'No buyers matched your search.'
+    : filteredDeals && filteredDeals.length === 0
+      ? 'No buyer data for the selected year range.'
+      : 'No buyer data yet. Upload a CSV or XLSX to get started.';
 
   return (
     <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-8 text-slate-100">
@@ -1041,6 +1170,128 @@ export default function BuyersRoute() {
               className="w-24 rounded border border-slate-700 bg-slate-800 p-1 text-sm"
             />
           </div>
+          <div className="flex min-w-[220px] flex-1 items-center gap-2">
+            <label htmlFor="buyer-search" className="text-sm text-slate-300">
+              Search buyers
+            </label>
+            <input
+              id="buyer-search"
+              type="text"
+              value={searchQuery}
+              onChange={handleSearchChange}
+              placeholder="e.g. Smith Auto"
+              className="w-full rounded border border-slate-700 bg-slate-800 p-1 text-sm"
+            />
+          </div>
+        </div>
+
+        <div className="rounded border border-slate-700 bg-slate-900 p-4">
+          <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <h2 className="text-lg font-semibold text-white">Buyer Finder</h2>
+              <p className="text-sm text-slate-300">
+                Enter a few vehicle details and we&apos;ll surface the buyer most likely to close the deal.
+              </p>
+            </div>
+          </div>
+          <form onSubmit={handleFinderSubmit} className="mt-4 flex flex-col gap-4">
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              <label className="flex flex-col gap-1 text-sm">
+                <span className="text-slate-300">Year</span>
+                <input
+                  type="number"
+                  value={finderYear}
+                  onChange={(event) => setFinderYear(event.target.value)}
+                  placeholder="e.g. 2021"
+                  className="rounded border border-slate-700 bg-slate-800 p-2 text-sm"
+                />
+              </label>
+              <label className="flex flex-col gap-1 text-sm">
+                <span className="text-slate-300">Make</span>
+                <input
+                  type="text"
+                  value={finderMake}
+                  onChange={(event) => setFinderMake(event.target.value)}
+                  placeholder="e.g. Toyota"
+                  className="rounded border border-slate-700 bg-slate-800 p-2 text-sm"
+                />
+              </label>
+              <label className="flex flex-col gap-1 text-sm">
+                <span className="text-slate-300">Model</span>
+                <input
+                  type="text"
+                  value={finderModel}
+                  onChange={(event) => setFinderModel(event.target.value)}
+                  placeholder="e.g. Camry"
+                  className="rounded border border-slate-700 bg-slate-800 p-2 text-sm"
+                />
+              </label>
+              <label className="flex flex-col gap-1 text-sm">
+                <span className="text-slate-300">Mileage</span>
+                <input
+                  type="number"
+                  value={finderMileage}
+                  onChange={(event) => setFinderMileage(event.target.value)}
+                  placeholder="e.g. 45000"
+                  className="rounded border border-slate-700 bg-slate-800 p-2 text-sm"
+                />
+              </label>
+            </div>
+            <div className="flex flex-wrap items-center gap-3">
+              <button
+                type="submit"
+                className="rounded bg-sky-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-sky-500"
+              >
+                Find buyer
+              </button>
+              <button
+                type="button"
+                onClick={handleFinderReset}
+                className="rounded border border-slate-600 px-4 py-2 text-sm text-slate-200 transition hover:bg-slate-800"
+              >
+                Reset
+              </button>
+            </div>
+          </form>
+          {finderError && (
+            <div className="mt-4 rounded border border-rose-700 bg-rose-900/40 px-3 py-2 text-sm text-rose-200">
+              {finderError}
+            </div>
+          )}
+          {finderResult && (
+            <div className="mt-4 rounded border border-emerald-700 bg-emerald-900/30 px-3 py-3 text-sm text-emerald-100">
+              <div className="text-base font-semibold text-white">{finderResult.buyer}</div>
+              <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                <div>
+                  <span className="block text-xs uppercase tracking-wide text-emerald-300">Estimated sale price</span>
+                  <span className="text-sm font-medium text-white">
+                    {formatCurrency(finderResult.estimatedPrice)}
+                  </span>
+                </div>
+                <div>
+                  <span className="block text-xs uppercase tracking-wide text-emerald-300">Estimated profit</span>
+                  <span className="text-sm font-medium text-white">
+                    {formatCurrency(finderResult.estimatedGross)}
+                  </span>
+                </div>
+                <div>
+                  <span className="block text-xs uppercase tracking-wide text-emerald-300">Deals analysed</span>
+                  <span className="text-sm font-medium text-white">
+                    {finderResult.matches > 0 ? formatNumber(finderResult.matches) : '—'}
+                  </span>
+                </div>
+                <div>
+                  <span className="block text-xs uppercase tracking-wide text-emerald-300">Confidence score</span>
+                  <span className="text-sm font-medium text-white">{formatScore(finderResult.score)}</span>
+                </div>
+              </div>
+              <p className="mt-3 text-xs text-emerald-200">
+                {finderResult.matches > 0
+                  ? 'Suggestion based on historical deals that closely match your criteria.'
+                  : 'Suggestion based on each buyer\'s preferred inventory mix.'}
+              </p>
+            </div>
+          )}
         </div>
 
         {loading ? (
@@ -1053,7 +1304,7 @@ export default function BuyersRoute() {
           </div>
         ) : sortedStats.length === 0 ? (
           <div className="rounded border border-slate-700 bg-slate-900 p-6 text-center text-slate-300">
-            No buyer data yet. Upload a CSV or XLSX to get started.
+            {emptyMessage}
           </div>
         ) : (
           <div className="overflow-x-auto rounded border border-slate-700">
@@ -1174,4 +1425,259 @@ function formatCurrency(value?: number | null): string {
 function formatNumber(value?: number | null): string {
   if (typeof value !== 'number' || Number.isNaN(value)) return '—';
   return new Intl.NumberFormat().format(value);
+}
+
+function formatScore(value: number): string {
+  if (!Number.isFinite(value)) return '—';
+  return new Intl.NumberFormat(undefined, { maximumFractionDigits: 2 }).format(value);
+}
+
+function normaliseText(value?: string): string {
+  return typeof value === 'string' ? value.trim().toLowerCase() : '';
+}
+
+function tokenise(value?: string): string[] {
+  return normaliseText(value)
+    .split(/\s+/)
+    .filter((part) => part.length > 0);
+}
+
+function computeTokenSimilarity(query: string, candidate?: string): number {
+  const queryTokens = tokenise(query);
+  if (!queryTokens.length) return 0;
+  const candidateTokens = tokenise(candidate);
+  if (!candidateTokens.length) return 0;
+  let matches = 0;
+  queryTokens.forEach((token) => {
+    if (
+      candidateTokens.some(
+        (candidateToken) =>
+          candidateToken === token || candidateToken.startsWith(token) || candidateToken.includes(token),
+      )
+    ) {
+      matches += 1;
+    }
+  });
+  return matches / queryTokens.length;
+}
+
+function scoreYearDifference(dealYear: number | null | undefined, targetYear: number): number {
+  if (typeof dealYear !== 'number' || Number.isNaN(dealYear)) return 0;
+  const diff = Math.abs(dealYear - targetYear);
+  if (diff === 0) return 1;
+  if (diff === 1) return 0.8;
+  if (diff === 2) return 0.6;
+  if (diff <= 4) return 0.4;
+  if (diff <= 7) return 0.2;
+  return 0;
+}
+
+function scoreMileageDifference(dealMileage: number | null | undefined, targetMileage: number): number {
+  if (typeof dealMileage !== 'number' || Number.isNaN(dealMileage)) return 0;
+  const diff = Math.abs(dealMileage - targetMileage);
+  if (diff <= 1000) return 1;
+  if (diff <= 5000) return 0.8;
+  if (diff <= 15000) return 0.6;
+  if (diff <= 30000) return 0.4;
+  if (diff <= 60000) return 0.2;
+  return 0;
+}
+
+function findLikelyBuyer(deals: Deal[], stats: BuyerStatRecord[], input: BuyerFinderInput): BuyerFinderResult | null {
+  const statMap = new Map(stats.map((stat) => [stat.buyerId, stat]));
+  const makeQuery = input.make ? normaliseText(input.make) : '';
+  const modelQuery = input.model ? normaliseText(input.model) : '';
+  const yearQuery = typeof input.year === 'number' && Number.isFinite(input.year) ? input.year : undefined;
+  const mileageQuery = typeof input.mileage === 'number' && Number.isFinite(input.mileage) ? input.mileage : undefined;
+
+  const candidates = new Map<string, FinderCandidate>();
+  const MAKE_WEIGHT = 2.5;
+  const MODEL_WEIGHT = 3;
+  const YEAR_WEIGHT = 3;
+  const MILEAGE_WEIGHT = 2;
+
+  deals.forEach((deal) => {
+    const buyerName = normaliseBuyer(deal.buyer);
+    if (!buyerName) return;
+    let score = 0;
+    let matched = false;
+
+    if (typeof yearQuery === 'number') {
+      const yearScore = scoreYearDifference(deal.year ?? deriveYear(deal.vehicle), yearQuery);
+      if (yearScore > 0) {
+        score += yearScore * YEAR_WEIGHT;
+        matched = true;
+      }
+    }
+
+    if (makeQuery) {
+      const makeScore = Math.max(
+        computeTokenSimilarity(makeQuery, deal.make),
+        computeTokenSimilarity(makeQuery, deal.vehicle),
+      );
+      if (makeScore > 0) {
+        score += makeScore * MAKE_WEIGHT;
+        matched = true;
+      }
+    }
+
+    if (modelQuery) {
+      const modelScore = Math.max(
+        computeTokenSimilarity(modelQuery, deal.model),
+        computeTokenSimilarity(modelQuery, [deal.make, deal.model].filter(Boolean).join(' ')),
+        computeTokenSimilarity(modelQuery, deal.vehicle),
+      );
+      if (modelScore > 0) {
+        score += modelScore * MODEL_WEIGHT;
+        matched = true;
+      }
+    }
+
+    if (typeof mileageQuery === 'number') {
+      const mileageScore = scoreMileageDifference(deal.mileage ?? null, mileageQuery);
+      if (mileageScore > 0) {
+        score += mileageScore * MILEAGE_WEIGHT;
+        matched = true;
+      }
+    }
+
+    if (!matched || score <= 0) {
+      return;
+    }
+
+    const buyerId = normaliseBuyerId(buyerName);
+    const existing =
+      candidates.get(buyerId) ??
+      ({
+        buyer: buyerName,
+        buyerId,
+        score: 0,
+        matches: 0,
+        priceTotal: 0,
+        priceWeight: 0,
+        grossTotal: 0,
+        grossWeight: 0,
+      } as FinderCandidate);
+
+    existing.score += score;
+    existing.matches += 1;
+    if (typeof deal.price === 'number' && Number.isFinite(deal.price)) {
+      existing.priceTotal += deal.price * score;
+      existing.priceWeight += score;
+    }
+    if (typeof deal.gross === 'number' && Number.isFinite(deal.gross)) {
+      existing.grossTotal += deal.gross * score;
+      existing.grossWeight += score;
+    }
+
+    candidates.set(buyerId, existing);
+  });
+
+  let bestCandidate: FinderCandidate | null = null;
+
+  candidates.forEach((candidate) => {
+    if (
+      !bestCandidate ||
+      candidate.score > bestCandidate.score ||
+      (candidate.score === bestCandidate.score && candidate.matches > bestCandidate.matches)
+    ) {
+      bestCandidate = candidate;
+    }
+  });
+
+  if (bestCandidate && bestCandidate.score > 0) {
+    const stat = statMap.get(bestCandidate.buyerId);
+    const estimatedPrice =
+      bestCandidate.priceWeight > 0
+        ? bestCandidate.priceTotal / bestCandidate.priceWeight
+        : stat?.averages.price ?? null;
+    const estimatedGross =
+      bestCandidate.grossWeight > 0
+        ? bestCandidate.grossTotal / bestCandidate.grossWeight
+        : stat?.averages.gross ?? null;
+
+    return {
+      buyer: bestCandidate.buyer,
+      buyerId: bestCandidate.buyerId,
+      score: bestCandidate.score,
+      matches: bestCandidate.matches,
+      estimatedPrice: estimatedPrice ?? null,
+      estimatedGross: estimatedGross ?? null,
+    };
+  }
+
+  return findLikelyBuyerFromPreferences(stats, input);
+}
+
+function findLikelyBuyerFromPreferences(
+  stats: BuyerStatRecord[],
+  input: BuyerFinderInput,
+): BuyerFinderResult | null {
+  const modelQuery = normaliseText(
+    [
+      typeof input.year === 'number' && Number.isFinite(input.year) ? String(Math.round(input.year)) : '',
+      input.make ?? '',
+      input.model ?? '',
+    ]
+      .filter((part) => part && part.length > 0)
+      .join(' '),
+  );
+
+  let bestMatch: { stat: BuyerStatRecord; score: number } | null = null;
+
+  if (modelQuery) {
+    stats.forEach((stat) => {
+      stat.preferredModels.forEach((model) => {
+        const similarity = computeTokenSimilarity(modelQuery, model.vehicle);
+        if (similarity > 0) {
+          const weighted = similarity * Math.max(1, model.count);
+          if (!bestMatch || weighted > bestMatch.score) {
+            bestMatch = { stat, score: weighted };
+          }
+        }
+      });
+    });
+  }
+
+  if (!bestMatch && typeof input.year === 'number' && Number.isFinite(input.year)) {
+    const targetYear = Math.round(input.year);
+    stats.forEach((stat) => {
+      if (typeof stat.averages.year === 'number' && Number.isFinite(stat.averages.year)) {
+        const yearScore = scoreYearDifference(stat.averages.year, targetYear);
+        if (yearScore > 0) {
+          const weighted = yearScore * Math.max(1, stat.totalDeals);
+          if (!bestMatch || weighted > bestMatch.score) {
+            bestMatch = { stat, score: weighted };
+          }
+        }
+      }
+    });
+  }
+
+  if (!bestMatch && stats.length > 0) {
+    const topStat = stats.reduce((leader, stat) => {
+      if (!leader) return stat;
+      if (stat.totalDeals > leader.totalDeals) return stat;
+      if (stat.totalDeals === leader.totalDeals) {
+        const grossA = stat.averages.gross ?? 0;
+        const grossB = leader.averages.gross ?? 0;
+        if (grossA > grossB) return stat;
+      }
+      return leader;
+    });
+    bestMatch = { stat: topStat, score: Math.max(1, topStat.totalDeals) };
+  }
+
+  if (!bestMatch) {
+    return null;
+  }
+
+  return {
+    buyer: bestMatch.stat.buyer,
+    buyerId: bestMatch.stat.buyerId,
+    score: bestMatch.score,
+    matches: 0,
+    estimatedPrice: bestMatch.stat.averages.price ?? null,
+    estimatedGross: bestMatch.stat.averages.gross ?? null,
+  };
 }
