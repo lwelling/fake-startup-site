@@ -1,5 +1,6 @@
 import { ChangeEvent, FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import Papa, { ParseResult } from 'papaparse';
+import Papa from 'papaparse';
+import * as XLSX from 'xlsx';
 import {
   collection,
   doc,
@@ -32,6 +33,70 @@ const REQUIRED_HEADERS = [
 
 type CsvRow = Record<string, string>;
 
+const HEADER_ALIAS_MAP: Record<string, string> = {
+  dealdate: 'Deal Date',
+  'deal date': 'Deal Date',
+  dealnumber: 'Deal Number',
+  'deal number': 'Deal Number',
+  buyer: 'Buyer',
+  dealstatus: 'Deal Status',
+  'deal status': 'Deal Status',
+  'sales rep 1': 'Sales Rep 1',
+  salesrep1: 'Sales Rep 1',
+  'sales rep 2': 'Sales Rep 2',
+  salesrep2: 'Sales Rep 2',
+  vehicle: 'Vehicle',
+  'stock #': 'Stock #',
+  'stock#': 'Stock #',
+  'stock number': 'Stock #',
+  vin: 'VIN',
+  price: 'Price',
+  cost: 'Cost',
+  gross: 'Gross',
+  fees: 'Fees',
+  transportation: 'Transportation',
+  mileage: 'Mileage',
+};
+
+function replaceNbsp(value: string): string {
+  return value.replace(/\u00a0/g, ' ');
+}
+
+function collapseWhitespace(value: string): string {
+  return value.replace(/\s+/g, ' ');
+}
+
+function normaliseHeaderValue(value: string): string {
+  const withoutBom = value.replace(/^\uFEFF/, '');
+  const replaced = replaceNbsp(withoutBom);
+  const trimmed = replaced.trim();
+  const collapsed = collapseWhitespace(trimmed);
+  const lower = collapsed.toLowerCase();
+  return lower.replace(/[!"$%&'()*+,./:;<=>?@[\\\]^_`{|}~-]/g, '');
+}
+
+function toCanonicalHeader(header: string): string {
+  const normalised = normaliseHeaderValue(header);
+  const withoutSpaces = normalised.replace(/\s+/g, '');
+  const canonical = HEADER_ALIAS_MAP[normalised] ?? HEADER_ALIAS_MAP[withoutSpaces];
+  return canonical ?? normalised;
+}
+
+function normaliseLabel(value: string | undefined): string {
+  if (!value) return '';
+  return normaliseHeaderValue(value);
+}
+
+function cleanCell(value: unknown): string {
+  if (typeof value === 'string') {
+    return collapseWhitespace(replaceNbsp(value)).trim();
+  }
+  if (value === undefined || value === null) {
+    return '';
+  }
+  return String(value).trim();
+}
+
 type Deal = {
   dealDate: string;
   dealNumber: string;
@@ -42,11 +107,11 @@ type Deal = {
   vehicle?: string;
   stock?: string;
   vin?: string;
-  price?: number;
-  cost?: number;
-  gross?: number;
-  fees?: number;
-  transportation?: number;
+  price?: number | null;
+  cost?: number | null;
+  gross?: number | null;
+  fees?: number | null;
+  transportation?: number | null;
   mileage?: number | null;
   year?: number | null;
 };
@@ -99,15 +164,17 @@ type SortKey =
 
 type SortDirection = 'asc' | 'desc';
 
-function parseNumber(value: unknown): number | undefined {
+function parseNumber(value: unknown): number | null | undefined {
   if (typeof value === 'number') {
-    return Number.isFinite(value) ? value : undefined;
+    return Number.isFinite(value) ? value : null;
   }
-  if (typeof value !== 'string') return undefined;
-  const cleaned = value.replace(/[$,]/g, '').trim();
-  if (!cleaned) return undefined;
+  if (typeof value !== 'string') {
+    return value === undefined || value === null ? undefined : null;
+  }
+  const cleaned = cleanCell(value).replace(/[$,]/g, '');
+  if (!cleaned) return null;
   const parsed = Number(cleaned);
-  return Number.isFinite(parsed) ? parsed : undefined;
+  return Number.isFinite(parsed) ? parsed : null;
 }
 
 function deriveYear(vehicle?: string): number | null {
@@ -135,26 +202,29 @@ function round(value: number, decimals = 2): number {
 }
 
 function normaliseDeal(row: CsvRow, hasMileageColumn: boolean): Deal {
-  const vehicle = row['Vehicle']?.trim();
+  const vehicleRaw = cleanCell(row['Vehicle']);
   const mileageRaw = hasMileageColumn ? row['Mileage'] : undefined;
-  const mileageNumber = parseNumber(mileageRaw);
+  const mileageNumber = hasMileageColumn ? parseNumber(mileageRaw) : undefined;
+  const salesRep1 = cleanCell(row['Sales Rep 1']);
+  const salesRep2 = cleanCell(row['Sales Rep 2']);
+
   return {
-    dealDate: row['Deal Date']?.trim() ?? '',
-    dealNumber: row['Deal Number']?.trim() ?? '',
-    buyer: normaliseBuyer(row['Buyer'] ?? ''),
-    dealStatus: row['Deal Status']?.trim() ?? '',
-    salesRep1: row['Sales Rep 1']?.trim() || undefined,
-    salesRep2: row['Sales Rep 2']?.trim() || undefined,
-    vehicle: vehicle || undefined,
-    stock: row['Stock #']?.trim() || undefined,
-    vin: row['VIN']?.trim() || undefined,
+    dealDate: cleanCell(row['Deal Date']) ?? '',
+    dealNumber: cleanCell(row['Deal Number']) ?? '',
+    buyer: normaliseBuyer(cleanCell(row['Buyer'] ?? '')),
+    dealStatus: cleanCell(row['Deal Status']) ?? '',
+    salesRep1: salesRep1 || undefined,
+    salesRep2: salesRep2 || undefined,
+    vehicle: vehicleRaw || undefined,
+    stock: cleanCell(row['Stock #']) || undefined,
+    vin: cleanCell(row['VIN']) || undefined,
     price: parseNumber(row['Price']),
     cost: parseNumber(row['Cost']),
     gross: parseNumber(row['Gross']),
     fees: parseNumber(row['Fees']),
     transportation: parseNumber(row['Transportation']),
     mileage: hasMileageColumn ? (mileageNumber ?? null) : undefined,
-    year: deriveYear(vehicle),
+    year: deriveYear(vehicleRaw || undefined),
   };
 }
 
@@ -403,21 +473,188 @@ function deserializeStat(id: string, data: DocumentData): BuyerStatRecord {
   };
 }
 
-async function parseCsv(file: File): Promise<ParseResult<CsvRow>> {
+type FlatParseResult =
+  | { kind: 'success'; deals: Deal[] }
+  | { kind: 'missingHeaders'; missing: string[] };
+
+async function tryParseFlat(content: string): Promise<FlatParseResult> {
   return new Promise((resolve, reject) => {
-    Papa.parse<CsvRow>(file, {
+    Papa.parse<CsvRow>(content, {
       header: true,
-      skipEmptyLines: true,
-      complete: resolve,
+      skipEmptyLines: 'greedy',
+      transformHeader: toCanonicalHeader,
+      complete: (result) => {
+        const fields = result.meta.fields ?? [];
+        const headerSet = new Set(fields);
+        const missing = REQUIRED_HEADERS.filter((header) => !headerSet.has(header));
+        if (missing.length) {
+          resolve({ kind: 'missingHeaders', missing });
+          return;
+        }
+
+        const hasMileage = headerSet.has('Mileage');
+        const deals = result.data
+          .map((row) => row as CsvRow)
+          .filter((row) =>
+            Object.values(row as Record<string, unknown>).some((value) => cleanCell(value).length > 0),
+          )
+          .map((row) => normaliseDeal(row, hasMileage));
+
+        resolve({ kind: 'success', deals });
+      },
       error: reject,
     });
   });
 }
 
-function validateHeaders(fields: string[] | undefined): { valid: boolean; missing: string[] } {
-  const headers = fields ?? [];
-  const missing = REQUIRED_HEADERS.filter((header) => !headers.includes(header));
-  return { valid: missing.length === 0, missing };
+function flattenReportBlock(block: string[][]): Deal | null {
+  if (!block.length) return null;
+
+  const totalsRow = block[0];
+  if (normaliseLabel(totalsRow[0]) !== normaliseLabel('Deal Date')) {
+    return null;
+  }
+
+  const getRow = (label: string) => block.find((row) => normaliseLabel(row[0]) === normaliseLabel(label));
+  const getValue = (label: string) => {
+    const row = getRow(label);
+    return row ? cleanCell(row[1]) : '';
+  };
+
+  const columnCEntries = block.map((row) => cleanCell(row[2]));
+  let vehicle: string | undefined;
+  let vin: string | undefined;
+  let stock: string | undefined;
+  let sawVehicle = false;
+
+  for (const entry of columnCEntries) {
+    if (!vehicle && /^(19|20)\d{2}\b.+/.test(entry)) {
+      vehicle = entry;
+      sawVehicle = true;
+      continue;
+    }
+
+    if (!stock) {
+      const stockMatch = /^stock #[:\s-]*(.+)$/i.exec(entry);
+      if (stockMatch) {
+        stock = cleanCell(stockMatch[1]);
+      }
+    }
+
+    if (sawVehicle && !vin) {
+      const candidate = entry.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+      if (candidate.length === 17 && /[A-HJ-NPR-Z0-9]{17}/i.test(candidate)) {
+        vin = candidate;
+      }
+    }
+  }
+
+  const feesRow = getRow('Fees');
+  const transportationRow = getRow('Transportation');
+  const mileageRow = getRow('Mileage');
+
+  const feesFromF = feesRow ? parseNumber(feesRow[5]) : undefined;
+  const feesFromH = feesRow ? parseNumber(feesRow[7]) : undefined;
+  const transportationValue = transportationRow ? parseNumber(transportationRow[5]) : undefined;
+  const transportationFallback = transportationRow ? parseNumber(transportationRow[7]) : undefined;
+  const mileageValue = mileageRow ? parseNumber(mileageRow[1]) : undefined;
+
+  const deal: Deal = {
+    dealDate: cleanCell(totalsRow[1]),
+    dealNumber: getValue('Deal Number'),
+    buyer: normaliseBuyer(getValue('Buyer')),
+    dealStatus: getValue('Deal Status'),
+    salesRep1: getValue('Sales Rep 1') || undefined,
+    salesRep2: getValue('Sales Rep 2') || undefined,
+    vehicle: vehicle || undefined,
+    stock: stock || undefined,
+    vin: vin || undefined,
+    price: parseNumber(totalsRow[5]),
+    cost: parseNumber(totalsRow[6]),
+    gross: parseNumber(totalsRow[7]),
+    fees: feesFromF !== undefined ? feesFromF : feesFromH,
+    transportation:
+      transportationValue !== undefined ? transportationValue : transportationFallback,
+    mileage: mileageRow ? (mileageValue ?? null) : undefined,
+    year: deriveYear(vehicle),
+  };
+
+  return deal;
+}
+
+function parseReportStyle(content: string): Deal[] {
+  const result = Papa.parse<string[]>(content, {
+    header: false,
+    skipEmptyLines: 'greedy',
+  });
+
+  const rows = result.data as string[][];
+  const deals: Deal[] = [];
+  let currentBlock: string[][] | null = null;
+
+  rows.forEach((row) => {
+    const label = normaliseLabel(row[0]);
+    if (label === normaliseLabel('Deal Date')) {
+      if (currentBlock && currentBlock.length) {
+        const deal = flattenReportBlock(currentBlock);
+        if (deal) {
+          deals.push(deal);
+        }
+      }
+      currentBlock = [row];
+    } else if (currentBlock) {
+      currentBlock.push(row);
+    }
+  });
+
+  if (currentBlock && currentBlock.length) {
+    const deal = flattenReportBlock(currentBlock);
+    if (deal) {
+      deals.push(deal);
+    }
+  }
+
+  return deals;
+}
+
+async function readFileAsCsv(file: File): Promise<string> {
+  const name = file.name.toLowerCase();
+  const isXlsx =
+    name.endsWith('.xlsx') ||
+    file.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+
+  if (isXlsx) {
+    const buffer = await file.arrayBuffer();
+    const workbook = XLSX.read(buffer, { type: 'array' });
+    const [firstSheetName] = workbook.SheetNames;
+    if (!firstSheetName) {
+      throw new Error('The XLSX file did not contain any sheets.');
+    }
+    const worksheet = workbook.Sheets[firstSheetName];
+    return XLSX.utils.sheet_to_csv(worksheet, { FS: ',', strip: true });
+  }
+
+  return file.text();
+}
+
+async function parseDealsFile(file: File): Promise<{ deals: Deal[]; mode: 'flat' | 'report' }> {
+  const content = await readFileAsCsv(file);
+  const flatResult = await tryParseFlat(content);
+
+  if (flatResult.kind === 'success') {
+    return { deals: flatResult.deals, mode: 'flat' };
+  }
+
+  const reportDeals = parseReportStyle(content);
+  if (reportDeals.length) {
+    return { deals: reportDeals, mode: 'report' };
+  }
+
+  if (flatResult.kind === 'missingHeaders') {
+    throw new Error(`Missing required column(s): ${flatResult.missing.join(', ')}`);
+  }
+
+  throw new Error('Unable to parse file. Please ensure it is a supported CSV or XLSX export.');
 }
 
 function formatDate(date: Date | null): string {
@@ -494,6 +731,7 @@ function useBuyerData() {
 export default function BuyersRoute() {
   const [file, setFile] = useState<File | null>(null);
   const [status, setStatus] = useState<StatusMessage>(null);
+  const [usedReportStyle, setUsedReportStyle] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [sortKey, setSortKey] = useState<SortKey>('totalDeals');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
@@ -514,27 +752,25 @@ export default function BuyersRoute() {
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
     const selected = event.target.files?.[0] ?? null;
     setFile(selected);
+    setUsedReportStyle(false);
   };
 
   const onUpload = useCallback(async () => {
     if (!file) {
-      setStatus({ kind: 'error', message: 'Please select a CSV file to upload.' });
+      setStatus({ kind: 'error', message: 'Please select a CSV or XLSX file to upload.' });
       return;
     }
     setUploading(true);
-    setStatus({ kind: 'info', message: 'Parsing CSV…' });
+    setUsedReportStyle(false);
+    setStatus({ kind: 'info', message: 'Parsing file…' });
 
     try {
-      const result = await parseCsv(file);
-      const { valid, missing } = validateHeaders(result.meta.fields);
-      if (!valid) {
-        throw new Error(`Missing required column(s): ${missing.join(', ')}`);
-      }
-      const hasMileageColumn = result.meta.fields?.includes('Mileage') ?? false;
-      const deals = result.data.map((row) => normaliseDeal(row, hasMileageColumn));
+      const { deals, mode } = await parseDealsFile(file);
       if (!deals.length) {
-        throw new Error('The CSV file did not contain any rows to import.');
+        throw new Error('The file did not contain any rows to import.');
       }
+
+      setUsedReportStyle(mode === 'report');
 
       const database = getDb();
 
@@ -569,7 +805,7 @@ export default function BuyersRoute() {
         message:
           err instanceof Error
             ? err.message
-            : 'An unexpected error occurred while processing the CSV.',
+            : 'An unexpected error occurred while processing the file.',
       });
     } finally {
       setUploading(false);
@@ -673,12 +909,12 @@ export default function BuyersRoute() {
       <form onSubmit={handleSubmit} className="flex flex-col gap-4 rounded-lg border border-slate-700 bg-slate-900 p-4">
         <div>
           <label htmlFor="buyers-file" className="block text-sm font-medium text-slate-300">
-            Import buyer deals CSV
+            Import buyer deals CSV or XLSX
           </label>
           <input
             id="buyers-file"
             type="file"
-            accept=".csv"
+            accept=".csv,.xlsx"
             onChange={handleFileChange}
             disabled={uploading}
             ref={inputRef}
@@ -701,15 +937,21 @@ export default function BuyersRoute() {
                 inputRef.current.value = '';
               }
               setStatus(null);
+              setUsedReportStyle(false);
             }}
             className="rounded border border-slate-600 px-4 py-2 text-sm text-slate-200 transition hover:bg-slate-800"
           >
-            Re-upload CSV
+            Re-upload file
           </button>
           <div className="text-xs text-slate-400">
             {lastImportAt ? `Last import: ${formatDate(lastImportAt)}` : 'No imports yet.'}
           </div>
         </div>
+        {usedReportStyle && (
+          <div className="rounded border border-amber-600 bg-amber-900/40 px-3 py-2 text-sm text-amber-200">
+            Parsed report-style CSV and normalized into rows.
+          </div>
+        )}
         {status && (
           <div
             role="status"
@@ -769,7 +1011,7 @@ export default function BuyersRoute() {
           </div>
         ) : sortedStats.length === 0 ? (
           <div className="rounded border border-slate-700 bg-slate-900 p-6 text-center text-slate-300">
-            No buyer data yet. Upload a CSV to get started.
+            No buyer data yet. Upload a CSV or XLSX to get started.
           </div>
         ) : (
           <div className="overflow-x-auto rounded border border-slate-700">
@@ -878,7 +1120,7 @@ function SortableHeader({ label, sortKey, currentKey, direction, onSort }: Sorta
   );
 }
 
-function formatCurrency(value?: number): string {
+function formatCurrency(value?: number | null): string {
   if (typeof value !== 'number' || Number.isNaN(value)) return '—';
   return new Intl.NumberFormat(undefined, {
     style: 'currency',
@@ -887,7 +1129,7 @@ function formatCurrency(value?: number): string {
   }).format(value);
 }
 
-function formatNumber(value?: number): string {
+function formatNumber(value?: number | null): string {
   if (typeof value !== 'number' || Number.isNaN(value)) return '—';
   return new Intl.NumberFormat().format(value);
 }

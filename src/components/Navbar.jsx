@@ -3,9 +3,11 @@ import { Link, useNavigate } from 'react-router-dom';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { useAuth } from '../context/AuthContext';
+import { downloadBuyersTemplate } from '../lib/buyersTemplate';
 
 const pipelineLink = { to: '/pipeline', label: 'Pipeline' };
 const pulsarLink = { to: '/pulsar', label: 'Pulsar' };
+const buyersTemplateLink = { label: 'Buyers XLSX' };
 const playgroundLinks = [
   { to: '/contact', label: 'Contact' },
   { to: '/brainrotaas', label: 'BrainROTAaS' },
@@ -97,6 +99,15 @@ export default function Navbar() {
               {pulsarLink.label}
             </Link>
           </li>
+          <li>
+            <button
+              type="button"
+              onClick={() => downloadBuyersTemplate()}
+              className="hover:underline"
+            >
+              {buyersTemplateLink.label}
+            </button>
+          </li>
           <li className="relative">
             <button
               onClick={() => setPgOpen(!pgOpen)}
@@ -138,6 +149,18 @@ export default function Navbar() {
           >
             {pulsarLink.label}
           </Link>
+        </li>
+        <li>
+          <button
+            type="button"
+            className="text-left hover:underline"
+            onClick={() => {
+              downloadBuyersTemplate();
+              setOpen(false);
+            }}
+          >
+            {buyersTemplateLink.label}
+          </button>
         </li>
         <li>
           <button
