@@ -182,7 +182,43 @@ export default function Pipeline() {
       <p className="text-sm text-gray-500 mb-6">
         Uploading a new CSV will overwrite existing data.
       </p>
-      <table className="w-full bg-white rounded shadow">
+      <div className="space-y-4 md:hidden">
+        {carsWithStatus.map(({ car, status }) => (
+          <div
+            key={car['Stock Number']}
+            className="bg-white rounded shadow p-4 cursor-pointer"
+            onClick={() =>
+              navigate(`/pipeline/${car['Stock Number']}`, { state: { car } })
+            }
+          >
+            <div className="flex justify-between items-center mb-2">
+              <h3 className="font-semibold">
+                {car['Stock Number']} {car.Year} {car.Make} {car.Model}
+              </h3>
+              {status.badge && (
+                <span
+                  className={status.action ? 'text-red-600' : 'text-green-600'}
+                >
+                  {status.badge}
+                </span>
+              )}
+            </div>
+            <div className="text-sm text-gray-700">
+              <p>
+                <span className="font-medium">Odometer:</span> {car.Odometer} mi
+              </p>
+              <p>
+                <span className="font-medium">Days in Stock:</span>{' '}
+                {car['Days In Stock']} days
+              </p>
+              {status.action && (
+                <p className="text-red-600 mt-2">{status.action}</p>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+      <table className="hidden w-full bg-white rounded shadow md:table">
         <thead>
           <tr>
             <th
