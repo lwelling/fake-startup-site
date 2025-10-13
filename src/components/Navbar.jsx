@@ -3,11 +3,10 @@ import { Link, useNavigate } from 'react-router-dom';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { useAuth } from '../context/AuthContext';
-import { downloadBuyersTemplate } from '../lib/buyersTemplate';
 
 const pipelineLink = { to: '/pipeline', label: 'Pipeline' };
 const pulsarLink = { to: '/pulsar', label: 'Pulsar' };
-const buyersTemplateLink = { label: 'Buyers XLSX' };
+const buyersLink = { to: '/buyers', label: 'Buyers' };
 const playgroundLinks = [
   { to: '/contact', label: 'Contact' },
   { to: '/brainrotaas', label: 'BrainROTAaS' },
@@ -100,13 +99,9 @@ export default function Navbar() {
             </Link>
           </li>
           <li>
-            <button
-              type="button"
-              onClick={() => downloadBuyersTemplate()}
-              className="hover:underline"
-            >
-              {buyersTemplateLink.label}
-            </button>
+            <Link to={buyersLink.to} className="hover:underline">
+              {buyersLink.label}
+            </Link>
           </li>
           <li className="relative">
             <button
@@ -151,16 +146,13 @@ export default function Navbar() {
           </Link>
         </li>
         <li>
-          <button
-            type="button"
-            className="text-left hover:underline"
-            onClick={() => {
-              downloadBuyersTemplate();
-              setOpen(false);
-            }}
+          <Link
+            to={buyersLink.to}
+            className="hover:underline"
+            onClick={() => setOpen(false)}
           >
-            {buyersTemplateLink.label}
-          </button>
+            {buyersLink.label}
+          </Link>
         </li>
         <li>
           <button

@@ -18,17 +18,14 @@ const REQUIRED_HEADERS = [
   'Deal Date',
   'Deal Number',
   'Buyer',
-  'Deal Status',
-  'Sales Rep 1',
-  'Sales Rep 2',
-  'Vehicle',
-  'Stock #',
+  'Year',
+  'Make',
+  'Model',
   'VIN',
+  'Stock',
   'Price',
   'Cost',
   'Gross',
-  'Fees',
-  'Transportation',
 ] as const;
 
 type CsvRow = Record<string, string>;
@@ -39,17 +36,27 @@ const HEADER_ALIAS_MAP: Record<string, string> = {
   dealnumber: 'Deal Number',
   'deal number': 'Deal Number',
   buyer: 'Buyer',
+  buyername: 'Buyer',
+  year: 'Year',
+  'model year': 'Year',
+  make: 'Make',
+  manufacturer: 'Make',
+  model: 'Model',
+  vehicle: 'Vehicle',
   dealstatus: 'Deal Status',
   'deal status': 'Deal Status',
   'sales rep 1': 'Sales Rep 1',
   salesrep1: 'Sales Rep 1',
   'sales rep 2': 'Sales Rep 2',
   salesrep2: 'Sales Rep 2',
-  vehicle: 'Vehicle',
-  'stock #': 'Stock #',
-  'stock#': 'Stock #',
-  'stock number': 'Stock #',
+  'stock #': 'Stock',
+  'stock#': 'Stock',
+  'stock number': 'Stock',
+  stockno: 'Stock',
+  stocknumber: 'Stock',
+  stock: 'Stock',
   vin: 'VIN',
+  'vin#': 'VIN',
   price: 'Price',
   cost: 'Cost',
   gross: 'Gross',
@@ -104,6 +111,8 @@ type Deal = {
   dealStatus: string;
   salesRep1?: string;
   salesRep2?: string;
+  make?: string;
+  model?: string;
   vehicle?: string;
   stock?: string;
   vin?: string;
@@ -202,11 +211,30 @@ function round(value: number, decimals = 2): number {
 }
 
 function normaliseDeal(row: CsvRow, hasMileageColumn: boolean): Deal {
-  const vehicleRaw = cleanCell(row['Vehicle']);
-  const mileageRaw = hasMileageColumn ? row['Mileage'] : undefined;
-  const mileageNumber = hasMileageColumn ? parseNumber(mileageRaw) : undefined;
+  const rawVehicle = cleanCell(row['Vehicle']);
   const salesRep1 = cleanCell(row['Sales Rep 1']);
   const salesRep2 = cleanCell(row['Sales Rep 2']);
+  const make = cleanCell(row['Make']);
+  const model = cleanCell(row['Model']);
+  const stock = cleanCell(row['Stock']);
+  const mileageRaw = hasMileageColumn ? row['Mileage'] : undefined;
+  const mileageNumber = hasMileageColumn ? parseNumber(mileageRaw) : undefined;
+  const yearValue = parseNumber(row['Year']);
+  const numericYear =
+    typeof yearValue === 'number' && Number.isFinite(yearValue)
+      ? Math.round(yearValue)
+      : null;
+
+  const vehicleFromParts = [
+    typeof numericYear === 'number' ? String(numericYear) : '',
+    make,
+    model,
+  ]
+    .filter((part) => typeof part === 'string' && part.length > 0)
+    .join(' ')
+    .trim();
+
+  const vehicle = vehicleFromParts || rawVehicle;
 
   return {
     dealDate: cleanCell(row['Deal Date']) ?? '',
@@ -215,8 +243,10 @@ function normaliseDeal(row: CsvRow, hasMileageColumn: boolean): Deal {
     dealStatus: cleanCell(row['Deal Status']) ?? '',
     salesRep1: salesRep1 || undefined,
     salesRep2: salesRep2 || undefined,
-    vehicle: vehicleRaw || undefined,
-    stock: cleanCell(row['Stock #']) || undefined,
+    make: make || undefined,
+    model: model || undefined,
+    vehicle: vehicle || undefined,
+    stock: stock || cleanCell(row['Stock #']) || undefined,
     vin: cleanCell(row['VIN']) || undefined,
     price: parseNumber(row['Price']),
     cost: parseNumber(row['Cost']),
@@ -224,7 +254,7 @@ function normaliseDeal(row: CsvRow, hasMileageColumn: boolean): Deal {
     fees: parseNumber(row['Fees']),
     transportation: parseNumber(row['Transportation']),
     mileage: hasMileageColumn ? (mileageNumber ?? null) : undefined,
-    year: deriveYear(vehicleRaw || undefined),
+    year: typeof numericYear === 'number' ? numericYear : deriveYear(vehicle || rawVehicle || undefined),
   };
 }
 
@@ -289,9 +319,17 @@ function aggregateDeals(deals: Deal[]): BuyerStatRecord[] {
       entry.counts.year += 1;
     }
 
-    const model = deal.vehicle?.trim();
-    if (model) {
-      entry.preferredModels.set(model, (entry.preferredModels.get(model) ?? 0) + 1);
+    const preferredLabelParts = [
+      typeof deal.year === 'number' && Number.isFinite(deal.year) ? String(deal.year) : '',
+      deal.make?.trim() ?? '',
+      deal.model?.trim() ?? '',
+    ].filter((part) => part.length > 0);
+    const preferredLabel = (preferredLabelParts.join(' ').trim() || deal.vehicle?.trim() || '').trim();
+    if (preferredLabel) {
+      entry.preferredModels.set(
+        preferredLabel,
+        (entry.preferredModels.get(preferredLabel) ?? 0) + 1,
+      );
     }
 
     buyerMap.set(buyerId, entry);
@@ -353,6 +391,8 @@ function serialiseDeal(deal: Deal): DocumentData {
 
   if (deal.salesRep1) base.salesRep1 = deal.salesRep1;
   if (deal.salesRep2) base.salesRep2 = deal.salesRep2;
+  if (deal.make) base.make = deal.make;
+  if (deal.model) base.model = deal.model;
   if (deal.vehicle) base.vehicle = deal.vehicle;
   if (deal.stock) base.stock = deal.stock;
   if (deal.vin) base.vin = deal.vin;
@@ -419,6 +459,8 @@ function deserializeDeal(data: DocumentData): Deal {
     dealStatus: String(data.dealStatus ?? ''),
     salesRep1: data.salesRep1 ? String(data.salesRep1) : undefined,
     salesRep2: data.salesRep2 ? String(data.salesRep2) : undefined,
+    make: data.make ? cleanCell(data.make) || undefined : undefined,
+    model: data.model ? cleanCell(data.model) || undefined : undefined,
     vehicle: data.vehicle ? String(data.vehicle) : undefined,
     stock: data.stock ? String(data.stock) : undefined,
     vin: data.vin ? String(data.vin) : undefined,
